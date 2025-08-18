@@ -247,25 +247,25 @@ export async function POST(request: Request) {
           onToolCall: async ({ toolCall }) => {
             console.log(`Executing tool: ${toolCall.toolName}`, toolCall.args);
           },
-                      onToolResult: async ({ toolCall, result }) => {
-              // Process tool result into artifact
-              if (
-                toolCall.toolName === 'visibilityAcrossModels' ||
-                toolCall.toolName === 'brandMonitor' ||
-                toolCall.toolName === 'competitiveIntelligence' ||
-                toolCall.toolName === 'contentOptimization'
-              ) {
-                await artifactProcessor.processToolResult(
-                  toolCall.toolName,
-                  result,
-                  {
-                    userId: session.user.id,
-                    conversationId: id,
-                    timestamp: new Date().toISOString(),
-                  },
-                );
-              }
-            },
+          onToolResult: async ({ toolCall, result }) => {
+            // Process tool result into artifact
+            if (
+              toolCall.toolName === 'visibilityAcrossModels' ||
+              toolCall.toolName === 'brandMonitor' ||
+              toolCall.toolName === 'competitiveIntelligence' ||
+              toolCall.toolName === 'contentOptimization'
+            ) {
+              await artifactProcessor.processToolResult(
+                toolCall.toolName,
+                result,
+                {
+                  userId: session.user.id,
+                  conversationId: id,
+                  timestamp: new Date().toISOString(),
+                },
+              );
+            }
+          },
         });
 
         result.consumeStream();

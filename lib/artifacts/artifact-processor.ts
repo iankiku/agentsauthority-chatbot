@@ -26,7 +26,30 @@ export interface Artifact {
 }
 
 export class ArtifactProcessor {
+  private categorizer: ArtifactCategorizer;
+
+  constructor() {
+    this.categorizer = new ArtifactCategorizer();
+  }
+
   async processToolResult(
+    toolName: string,
+    result: any,
+    context: ConversationContext,
+  ): Promise<CategorizedArtifact> {
+    // Create base artifact
+    const baseArtifact = await this.createBaseArtifact(toolName, result, context);
+
+    // Categorize artifact
+    const categorizedArtifact = await this.categorizer.categorizeArtifact(baseArtifact);
+
+    // Save categorized artifact
+    await this.saveCategorizedArtifact(categorizedArtifact);
+
+    return categorizedArtifact;
+  }
+
+  private async createBaseArtifact(
     toolName: string,
     result: any,
     context: ConversationContext,
@@ -184,5 +207,16 @@ export class ArtifactProcessor {
 
     // For now, just log the artifact creation
     // TODO: Implement database persistence
+  }
+
+  private async saveCategorizedArtifact(artifact: CategorizedArtifact): Promise<void> {
+    console.log('Saving categorized artifact:', artifact.id, artifact.type, artifact.category);
+    console.log('Tags:', artifact.tags);
+    console.log('Priority:', artifact.priority);
+    console.log('Confidence:', artifact.categorizationConfidence);
+    console.log('Related artifacts:', artifact.relatedArtifacts.length);
+    
+    // In a real implementation, this would save to database with categorization data
+    // TODO: Implement database persistence with categorization fields
   }
 }
