@@ -5,7 +5,6 @@ import type { ChatModel } from '@/lib/ai/models';
 import { systemPrompt, type RequestHints } from '@/lib/ai/prompts';
 import { myProvider } from '@/lib/ai/providers';
 import { actionImplementationAgent } from '@/lib/ai/tools/action-implementation-agent';
-import { brandMonitorAgent } from '@/lib/ai/tools/brand-monitor-agent';
 import { brandMonitorTool } from '@/lib/ai/tools/brand-monitor-tool';
 import { competitiveIntelligenceTool } from '@/lib/ai/tools/competitive-intelligence-tool';
 import { contentOptimizationTool } from '@/lib/ai/tools/content-optimization-tool';
@@ -14,7 +13,6 @@ import { getWeather } from '@/lib/ai/tools/get-weather';
 import { requestSuggestions } from '@/lib/ai/tools/request-suggestions';
 import { updateDocument } from '@/lib/ai/tools/update-document';
 import { visibilityAcrossModelsTool } from '@/lib/ai/tools/visibility-across-models-tool';
-import { visibilityExplorerAgent } from '@/lib/ai/tools/visibility-explorer-agent';
 import { ArtifactProcessor } from '@/lib/artifacts/artifact-processor';
 import { isProductionEnvironment } from '@/lib/constants';
 import {
@@ -189,11 +187,9 @@ export async function POST(request: Request) {
                     'createDocument',
                     'updateDocument',
                     'requestSuggestions',
-                    'brandMonitorAgent',
                     'brandMonitor',
                     'competitiveIntelligence',
                     'contentOptimization',
-                    'visibilityExplorerAgent',
                     'actionImplementationAgent',
                     'visibilityAcrossModels',
                   ],
@@ -209,11 +205,9 @@ export async function POST(request: Request) {
                     session,
                     dataStream,
                   }),
-                  brandMonitorAgent,
                   brandMonitor: brandMonitorTool,
                   competitiveIntelligence: competitiveIntelligenceTool,
                   contentOptimization: contentOptimizationTool,
-                  visibilityExplorerAgent,
                   actionImplementationAgent,
                   visibilityAcrossModels: visibilityAcrossModelsTool,
                 },

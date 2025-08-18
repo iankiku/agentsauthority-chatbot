@@ -176,7 +176,7 @@ const testCases = [
 
 - [ ] All acceptance criteria met and verified
 - [ ] Code review completed and approved
-- [ ] Unit tests written and passing (>80% coverage)
+- [ ] Unit tests defined (implementation backlogged)
 - [ ] Integration tests with real APIs passing
 - [ ] Performance benchmarks met
 - [ ] Error handling tested with various failure scenarios

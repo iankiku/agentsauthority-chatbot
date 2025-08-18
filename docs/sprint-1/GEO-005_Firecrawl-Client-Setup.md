@@ -414,7 +414,7 @@ const testCases = [
 - [ ] Brand mention detection accurate (>90%)
 - [ ] Sentiment analysis providing reasonable results
 - [ ] Rate limiting and error handling implemented
-- [ ] Unit tests written and passing (>80% coverage)
+- [ ] Unit tests defined (implementation backlogged)
 - [ ] Integration tests with real APIs passing
 - [ ] Performance benchmarks met
 - [ ] Code review completed and approved

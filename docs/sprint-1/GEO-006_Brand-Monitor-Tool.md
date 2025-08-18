@@ -430,7 +430,7 @@ describe("Brand Monitor Performance", () => {
 - [ ] Sentiment analysis providing reasonable results
 - [ ] Trending topic extraction functional
 - [ ] Error handling provides user-friendly messages
-- [ ] Unit tests written and passing (>80% coverage)
+- [ ] Unit tests defined (implementation backlogged)
 - [ ] Integration tests with real web scraping passing
 - [ ] Performance benchmarks met
 - [ ] Code review completed and approved

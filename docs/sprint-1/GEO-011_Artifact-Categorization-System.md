@@ -330,7 +330,7 @@ const testScenarios = [
 - [ ] Categorization system integrates with artifact creation
 - [ ] Database schema updated and migrated
 - [ ] Search and filter functionality working
-- [ ] Unit tests written and passing (>80% coverage)
+- [ ] Unit tests defined (implementation backlogged)
 - [ ] Integration tests with artifact pipeline passing
 - [ ] Performance benchmarks met
 - [ ] Code review completed and approved

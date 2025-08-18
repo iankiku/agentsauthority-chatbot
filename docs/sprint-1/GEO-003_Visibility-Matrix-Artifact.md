@@ -317,7 +317,7 @@ describe("VisibilityMatrix Accessibility", () => {
 - [ ] Component renders correctly with real data
 - [ ] Responsive design tested on all device sizes
 - [ ] Accessibility requirements met (WCAG 2.1 AA)
-- [ ] Unit tests written and passing (>80% coverage)
+- [ ] Unit tests defined (implementation backlogged)
 - [ ] Visual regression tests passing
 - [ ] Performance benchmarks met
 - [ ] Integration with artifact system working

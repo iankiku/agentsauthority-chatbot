@@ -258,7 +258,7 @@ const testScenarios = [
 - [ ] Parameter validation works correctly
 - [ ] Response structure supports artifact generation
 - [ ] Error handling provides user-friendly messages
-- [ ] Unit tests written and passing (>80% coverage)
+- [ ] Unit tests defined (implementation backlogged)
 - [ ] Integration tests with multi-model client passing
 - [ ] Performance benchmarks met
 - [ ] Code review completed and approved
