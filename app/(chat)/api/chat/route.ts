@@ -1,13 +1,17 @@
-import {
-  convertToModelMessages,
-  createUIMessageStream,
-  JsonToSseTransformStream,
-  smoothStream,
-  stepCountIs,
-  streamText,
-} from 'ai';
 import { auth, type UserType } from '@/app/(auth)/auth';
-import { type RequestHints, systemPrompt } from '@/lib/ai/prompts';
+import type { VisibilityType } from '@/components/visibility-selector';
+import { entitlementsByUserType } from '@/lib/ai/entitlements';
+import type { ChatModel } from '@/lib/ai/models';
+import { systemPrompt, type RequestHints } from '@/lib/ai/prompts';
+import { myProvider } from '@/lib/ai/providers';
+import { actionImplementationAgent } from '@/lib/ai/tools/action-implementation-agent';
+import { brandMonitorAgent } from '@/lib/ai/tools/brand-monitor-agent';
+import { createDocument } from '@/lib/ai/tools/create-document';
+import { getWeather } from '@/lib/ai/tools/get-weather';
+import { requestSuggestions } from '@/lib/ai/tools/request-suggestions';
+import { updateDocument } from '@/lib/ai/tools/update-document';
+import { visibilityExplorerAgent } from '@/lib/ai/tools/visibility-explorer-agent';
+import { isProductionEnvironment } from '@/lib/constants';
 import {
   createStreamId,
   deleteChatById,
@@ -17,26 +21,24 @@ import {
   saveChat,
   saveMessages,
 } from '@/lib/db/queries';
+import { ChatSDKError } from '@/lib/errors';
+import type { ChatMessage } from '@/lib/types';
 import { convertToUIMessages, generateUUID } from '@/lib/utils';
-import { generateTitleFromUserMessage } from '../../actions';
-import { createDocument } from '@/lib/ai/tools/create-document';
-import { updateDocument } from '@/lib/ai/tools/update-document';
-import { requestSuggestions } from '@/lib/ai/tools/request-suggestions';
-import { getWeather } from '@/lib/ai/tools/get-weather';
-import { isProductionEnvironment } from '@/lib/constants';
-import { myProvider } from '@/lib/ai/providers';
-import { entitlementsByUserType } from '@/lib/ai/entitlements';
-import { postRequestBodySchema, type PostRequestBody } from './schema';
 import { geolocation } from '@vercel/functions';
+import {
+  createUIMessageStream,
+  JsonToSseTransformStream,
+  smoothStream,
+  stepCountIs,
+  streamText,
+} from 'ai';
+import { after } from 'next/server';
 import {
   createResumableStreamContext,
   type ResumableStreamContext,
 } from 'resumable-stream';
-import { after } from 'next/server';
-import { ChatSDKError } from '@/lib/errors';
-import type { ChatMessage } from '@/lib/types';
-import type { ChatModel } from '@/lib/ai/models';
-import type { VisibilityType } from '@/components/visibility-selector';
+import { generateTitleFromUserMessage } from '../../actions';
+import { postRequestBodySchema, type PostRequestBody } from './schema';
 
 export const maxDuration = 60;
 
@@ -151,30 +153,77 @@ export async function POST(request: Request) {
 
     const stream = createUIMessageStream({
       execute: ({ writer: dataStream }) => {
+        console.log('Chat API - Starting stream execution');
+        console.log('Chat API - selectedChatModel:', selectedChatModel);
+        console.log('Chat API - uiMessages:', uiMessages);
+        console.log(
+          'Chat API - uiMessages[0].parts:',
+          JSON.stringify(uiMessages[0]?.parts, null, 2),
+        );
+
+        console.log('Chat API - About to call convertToModelMessages');
+
+        // Custom conversion function to handle UI messages properly
+        const modelMessages = uiMessages
+          .filter((msg) => msg.parts && msg.parts.length > 0) // Only include messages with content
+          .map((msg) => ({
+            role: msg.role,
+            content: msg.parts
+              .filter((part) => part.type === 'text')
+              .map((part) => (part as any).text)
+              .join(' ')
+              .trim(),
+          }))
+          .filter((msg) => msg.content.length > 0); // Only include messages with non-empty content
+
+        console.log('Chat API - modelMessages:', modelMessages);
+        console.log(
+          'Chat API - modelMessages[0].content:',
+          JSON.stringify(modelMessages[0]?.content, null, 2),
+        );
+
+        console.log('Chat API - About to call myProvider.languageModel');
+        const model = myProvider.languageModel(selectedChatModel);
+        console.log('Chat API - model:', model);
+
+        console.log('Chat API - About to call streamText');
         const result = streamText({
-          model: myProvider.languageModel(selectedChatModel),
+          model: model,
           system: systemPrompt({ selectedChatModel, requestHints }),
-          messages: convertToModelMessages(uiMessages),
+          messages: modelMessages,
           stopWhen: stepCountIs(5),
+          // For Mastra agents, tools are built-in, so we don't need external tools
           experimental_activeTools:
-            selectedChatModel === 'chat-model-reasoning'
+            selectedChatModel === 'weather-agent'
               ? []
-              : [
-                  'getWeather',
-                  'createDocument',
-                  'updateDocument',
-                  'requestSuggestions',
-                ],
+              : selectedChatModel === 'chat-model-reasoning'
+                ? []
+                : [
+                    'getWeather',
+                    'createDocument',
+                    'updateDocument',
+                    'requestSuggestions',
+                    'brandMonitorAgent',
+                    'visibilityExplorerAgent',
+                    'actionImplementationAgent',
+                  ],
           experimental_transform: smoothStream({ chunking: 'word' }),
-          tools: {
-            getWeather,
-            createDocument: createDocument({ session, dataStream }),
-            updateDocument: updateDocument({ session, dataStream }),
-            requestSuggestions: requestSuggestions({
-              session,
-              dataStream,
-            }),
-          },
+          // Only provide tools for non-Mastra models
+          tools:
+            selectedChatModel === 'weather-agent'
+              ? {}
+              : {
+                  getWeather,
+                  createDocument: createDocument({ session, dataStream }),
+                  updateDocument: updateDocument({ session, dataStream }),
+                  requestSuggestions: requestSuggestions({
+                    session,
+                    dataStream,
+                  }),
+                  brandMonitorAgent,
+                  visibilityExplorerAgent,
+                  actionImplementationAgent,
+                },
           experimental_telemetry: {
             isEnabled: isProductionEnvironment,
             functionId: 'stream-text',
@@ -222,6 +271,10 @@ export async function POST(request: Request) {
     if (error instanceof ChatSDKError) {
       return error.toResponse();
     }
+
+    // Handle other errors
+    console.error('Chat API error:', error);
+    return new ChatSDKError('bad_request:api').toResponse();
   }
 }
 
