@@ -37,13 +37,28 @@ export interface CompetitiveAnalysisResult {
 }
 
 export const competitiveIntelligenceTool = tool({
-  description: 'Analyze competitive positioning and market share across AI platforms with multi-brand comparison',
+  description:
+    'Analyze competitive positioning and market share across AI platforms with multi-brand comparison',
   inputSchema: z.object({
-    primaryBrand: z.string().min(1).max(100).describe('The primary brand to analyze'),
-    competitors: z.array(z.string()).min(1).max(10).describe('Array of competitor brand names'),
+    primaryBrand: z
+      .string()
+      .min(1)
+      .max(100)
+      .describe('The primary brand to analyze'),
+    competitors: z
+      .array(z.string())
+      .min(1)
+      .max(10)
+      .describe('Array of competitor brand names'),
     industry: z.string().optional().describe('Industry context for analysis'),
-    timeframe: z.enum(['week', 'month', 'quarter']).default('week').describe('Timeframe for analysis'),
-    includeRecommendations: z.boolean().default(true).describe('Include strategic recommendations'),
+    timeframe: z
+      .enum(['week', 'month', 'quarter'])
+      .default('week')
+      .describe('Timeframe for analysis'),
+    includeRecommendations: z
+      .boolean()
+      .default(true)
+      .describe('Include strategic recommendations'),
   }),
   execute: async ({
     primaryBrand,
@@ -59,14 +74,24 @@ export const competitiveIntelligenceTool = tool({
       const multiModelClient = new MultiModelClient();
 
       // Generate analysis queries
-      const analysisQueries = generateCompetitiveQueries(primaryBrand, competitors, industry);
+      const analysisQueries = generateCompetitiveQueries(
+        primaryBrand,
+        competitors,
+        industry,
+      );
 
       // Analyze primary brand
-      const primaryResults = await multiModelClient.queryAllModels(primaryBrand, analysisQueries);
+      const primaryResults = await multiModelClient.queryAllModels(
+        primaryBrand,
+        analysisQueries,
+      );
 
       // Analyze competitors in parallel
       const competitorPromises = competitors.map(async (competitor) => {
-        const results = await multiModelClient.queryAllModels(competitor, analysisQueries);
+        const results = await multiModelClient.queryAllModels(
+          competitor,
+          analysisQueries,
+        );
         return { brand: competitor, results };
       });
 
@@ -76,7 +101,11 @@ export const competitiveIntelligenceTool = tool({
       );
 
       // Perform competitive analysis
-      const analysis = analyzeCompetitivePosition(primaryBrand, primaryResults, competitorResultsMap);
+      const analysis = analyzeCompetitivePosition(
+        primaryBrand,
+        primaryResults,
+        competitorResultsMap,
+      );
 
       // Generate strategic recommendations
       const strategicRecommendations = includeRecommendations
@@ -107,7 +136,8 @@ export const competitiveIntelligenceTool = tool({
     } catch (error) {
       // Handle errors gracefully
       const executionTime = Date.now() - startTime;
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
 
       // Return a partial result with error information
       const errorResult: CompetitiveAnalysisResult = {
@@ -149,9 +179,13 @@ export const competitiveIntelligenceTool = tool({
 /**
  * Generate competitive analysis queries
  */
-function generateCompetitiveQueries(primaryBrand: string, competitors: string[], industry: string): string[] {
+function generateCompetitiveQueries(
+  primaryBrand: string,
+  competitors: string[],
+  industry: string,
+): string[] {
   const competitorList = competitors.join(', ');
-  
+
   return [
     `Compare ${primaryBrand} with ${competitorList} in the ${industry} industry. What are the key differences?`,
     `What are the main strengths and weaknesses of ${primaryBrand} compared to ${competitorList}?`,
@@ -196,7 +230,11 @@ function analyzeCompetitivePosition(
   const shareOfVoice = calculateShareOfVoice(brandScores, primaryBrand);
 
   // Identify competitive gaps
-  const gaps = identifyCompetitiveGaps(primaryResults, competitorResults, primaryBrand);
+  const gaps = identifyCompetitiveGaps(
+    primaryResults,
+    competitorResults,
+    primaryBrand,
+  );
 
   return {
     marketPosition: {
@@ -233,15 +271,22 @@ function calculateOverallScore(results: any[]): number {
     return score;
   });
 
-  const averageScore = scores.reduce((sum, score) => sum + score, 0) / scores.length;
+  const averageScore =
+    scores.reduce((sum, score) => sum + score, 0) / scores.length;
   return Math.round(averageScore);
 }
 
 /**
  * Calculate market share percentage
  */
-function calculateMarketShare(brandScores: Record<string, number>, primaryBrand: string): number {
-  const totalScore = Object.values(brandScores).reduce((sum, score) => sum + score, 0);
+function calculateMarketShare(
+  brandScores: Record<string, number>,
+  primaryBrand: string,
+): number {
+  const totalScore = Object.values(brandScores).reduce(
+    (sum, score) => sum + score,
+    0,
+  );
   if (totalScore === 0) return 0;
 
   const primaryScore = brandScores[primaryBrand] || 0;
@@ -255,8 +300,11 @@ function calculateShareOfVoice(
   brandScores: Record<string, number>,
   primaryBrand: string,
 ): CompetitiveAnalysisResult['shareOfVoice'] {
-  const totalScore = Object.values(brandScores).reduce((sum, score) => sum + score, 0);
-  
+  const totalScore = Object.values(brandScores).reduce(
+    (sum, score) => sum + score,
+    0,
+  );
+
   if (totalScore === 0) {
     return {
       primaryBrand: 0,
@@ -303,13 +351,22 @@ function identifyCompetitiveGaps(
   const gaps: CompetitiveAnalysisResult['competitiveGaps'] = [];
 
   // Analyze visibility gaps
-  const primaryVisibility = primaryResults.reduce((sum, r) => sum + (r.visibility_score || 0), 0) / primaryResults.length;
-  const competitorVisibilities = Object.entries(competitorResults).map(([brand, results]) => ({
-    brand,
-    visibility: results.reduce((sum, r) => sum + (r.visibility_score || 0), 0) / results.length,
-  }));
+  const primaryVisibility =
+    primaryResults.reduce((sum, r) => sum + (r.visibility_score || 0), 0) /
+    primaryResults.length;
+  const competitorVisibilities = Object.entries(competitorResults).map(
+    ([brand, results]) => ({
+      brand,
+      visibility:
+        results.reduce((sum, r) => sum + (r.visibility_score || 0), 0) /
+        results.length,
+    }),
+  );
 
-  const maxVisibility = Math.max(primaryVisibility, ...competitorVisibilities.map((c) => c.visibility));
+  const maxVisibility = Math.max(
+    primaryVisibility,
+    ...competitorVisibilities.map((c) => c.visibility),
+  );
   if (primaryVisibility < maxVisibility * 0.8) {
     gaps.push({
       category: 'Visibility',
@@ -321,7 +378,9 @@ function identifyCompetitiveGaps(
 
   // Analyze sentiment gaps
   const primarySentiments = primaryResults.map((r) => r.sentiment);
-  const positiveSentimentRatio = primarySentiments.filter((s) => s === 'positive').length / primarySentiments.length;
+  const positiveSentimentRatio =
+    primarySentiments.filter((s) => s === 'positive').length /
+    primarySentiments.length;
 
   if (positiveSentimentRatio < 0.6) {
     gaps.push({
@@ -333,11 +392,16 @@ function identifyCompetitiveGaps(
   }
 
   // Analyze mention frequency gaps
-  const primaryMentions = primaryResults.reduce((sum, r) => sum + (r.mentions || 0), 0);
+  const primaryMentions = primaryResults.reduce(
+    (sum, r) => sum + (r.mentions || 0),
+    0,
+  );
   const competitorMentions = Object.values(competitorResults).map((results) =>
     results.reduce((sum, r) => sum + (r.mentions || 0), 0),
   );
-  const avgCompetitorMentions = competitorMentions.reduce((sum, mentions) => sum + mentions, 0) / competitorMentions.length;
+  const avgCompetitorMentions =
+    competitorMentions.reduce((sum, mentions) => sum + mentions, 0) /
+    competitorMentions.length;
 
   if (primaryMentions < avgCompetitorMentions * 0.7) {
     gaps.push({
@@ -382,29 +446,49 @@ function generateStrategicRecommendations(
 
   // Market position recommendations
   if (analysis.marketPosition.overallRank > 2) {
-    recommendations.push('Focus on improving competitive positioning through targeted content strategy');
-    recommendations.push('Develop unique value propositions to differentiate from top competitors');
+    recommendations.push(
+      'Focus on improving competitive positioning through targeted content strategy',
+    );
+    recommendations.push(
+      'Develop unique value propositions to differentiate from top competitors',
+    );
   } else if (analysis.marketPosition.overallRank === 1) {
-    recommendations.push('Maintain market leadership by continuing to innovate and engage');
-    recommendations.push('Monitor competitor activities to defend market position');
+    recommendations.push(
+      'Maintain market leadership by continuing to innovate and engage',
+    );
+    recommendations.push(
+      'Monitor competitor activities to defend market position',
+    );
   }
 
   // Share of voice recommendations
   if (analysis.shareOfVoice.primaryBrand < 30) {
-    recommendations.push('Increase share of voice through aggressive content marketing');
-    recommendations.push('Develop thought leadership content to improve brand authority');
+    recommendations.push(
+      'Increase share of voice through aggressive content marketing',
+    );
+    recommendations.push(
+      'Develop thought leadership content to improve brand authority',
+    );
   }
 
   // Gap-based recommendations
-  const highImpactGaps = analysis.competitiveGaps.filter((gap) => gap.impact === 'high');
+  const highImpactGaps = analysis.competitiveGaps.filter(
+    (gap) => gap.impact === 'high',
+  );
   highImpactGaps.forEach((gap) => {
-    recommendations.push(`Prioritize ${gap.category.toLowerCase()} improvements: ${gap.opportunity}`);
+    recommendations.push(
+      `Prioritize ${gap.category.toLowerCase()} improvements: ${gap.opportunity}`,
+    );
   });
 
   // General strategic recommendations
-  recommendations.push('Implement continuous competitive monitoring and analysis');
+  recommendations.push(
+    'Implement continuous competitive monitoring and analysis',
+  );
   recommendations.push('Develop AI platform-specific content strategies');
-  recommendations.push('Create competitive response playbooks for different scenarios');
+  recommendations.push(
+    'Create competitive response playbooks for different scenarios',
+  );
 
   return recommendations.slice(0, 5); // Limit to top 5 recommendations
 }

@@ -1,5 +1,6 @@
 import type { BrandMonitorResult } from '../ai/tools/brand-monitor-tool';
 import type { CompetitiveAnalysisResult } from '../ai/tools/competitive-intelligence-tool';
+import type { ContentOptimizationResult } from '../ai/tools/content-optimization-tool';
 import type { VisibilityAnalysisResult } from '../ai/tools/types';
 
 export interface ConversationContext {
@@ -30,15 +31,18 @@ export class ArtifactProcessor {
     result: any,
     context: ConversationContext,
   ): Promise<Artifact> {
-        switch (toolName) {
+    switch (toolName) {
       case 'visibilityAcrossModels':
         return this.createVisibilityArtifact(result, context);
- 
+
       case 'brandMonitor':
         return this.createBrandMonitorArtifact(result, context);
 
       case 'competitiveIntelligence':
         return this.createCompetitiveIntelligenceArtifact(result, context);
+
+      case 'contentOptimization':
+        return this.createContentOptimizationArtifact(result, context);
 
       default:
         return this.createGenericArtifact(result, context);
@@ -107,8 +111,37 @@ export class ArtifactProcessor {
         brandName: result.primaryBrand,
         timestamp: new Date().toISOString(),
         category: 'competitive-analysis',
-        tags: ['competitive-intelligence', 'market-analysis', 'competitive-positioning', 'geo'],
+        tags: [
+          'competitive-intelligence',
+          'market-analysis',
+          'competitive-positioning',
+          'geo',
+        ],
         generatedBy: 'competitiveIntelligence',
+        userId: context.userId,
+        conversationId: context.conversationId,
+      },
+    };
+
+    await this.saveArtifact(artifact);
+    return artifact;
+  }
+
+  private async createContentOptimizationArtifact(
+    result: ContentOptimizationResult,
+    context: ConversationContext,
+  ): Promise<Artifact> {
+    const artifact: Artifact = {
+      id: this.generateId(),
+      type: 'content-optimization',
+      title: `Content Optimization Analysis - ${result.contentType || 'Content'}`,
+      content: result,
+      metadata: {
+        brandName: undefined, // Content optimization doesn't have a specific brand
+        timestamp: new Date().toISOString(),
+        category: 'content-optimization',
+        tags: ['content-optimization', 'seo', 'ai-platforms', 'geo'],
+        generatedBy: 'contentOptimization',
         userId: context.userId,
         conversationId: context.conversationId,
       },

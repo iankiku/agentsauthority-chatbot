@@ -6,7 +6,8 @@ jest.mock('../data-sources/multi-model-client', () => ({
     queryAllModels: jest.fn().mockResolvedValue([
       {
         model: 'OpenAI GPT-4',
-        response: 'Tesla is an innovative electric vehicle company with strong market presence.',
+        response:
+          'Tesla is an innovative electric vehicle company with strong market presence.',
         mentions: 2,
         context: ['Tesla is an innovative electric vehicle company'],
         sentiment: 'positive',
@@ -16,7 +17,8 @@ jest.mock('../data-sources/multi-model-client', () => ({
       },
       {
         model: 'Anthropic Claude',
-        response: 'Tesla leads the electric vehicle market with cutting-edge technology.',
+        response:
+          'Tesla leads the electric vehicle market with cutting-edge technology.',
         mentions: 1,
         context: ['Tesla leads the electric vehicle market'],
         sentiment: 'positive',
@@ -25,7 +27,9 @@ jest.mock('../data-sources/multi-model-client', () => ({
         success: true,
       },
     ]),
-    getAvailableModels: jest.fn().mockReturnValue(['OpenAI GPT-4', 'Anthropic Claude', 'Google Gemini']),
+    getAvailableModels: jest
+      .fn()
+      .mockReturnValue(['OpenAI GPT-4', 'Anthropic Claude', 'Google Gemini']),
   })),
 }));
 
@@ -51,7 +55,11 @@ describe('competitiveIntelligenceTool', () => {
     expect(result.shareOfVoice.competitors).toHaveLength(3);
     expect(result.competitiveGaps.length).toBeGreaterThan(0);
     expect(result.strategicRecommendations.length).toBeGreaterThan(0);
-    expect(result.metadata.modelsQueried).toEqual(['OpenAI GPT-4', 'Anthropic Claude', 'Google Gemini']);
+    expect(result.metadata.modelsQueried).toEqual([
+      'OpenAI GPT-4',
+      'Anthropic Claude',
+      'Google Gemini',
+    ]);
     expect(result.metadata.category).toBe('competitive-analysis');
   });
 
@@ -93,10 +101,14 @@ describe('competitiveIntelligenceTool', () => {
 
     expect(result.marketPosition.marketShare).toBeGreaterThan(0);
     expect(result.marketPosition.marketShare).toBeLessThanOrEqual(100);
-    
+
     // Market share should sum to 100% across all brands
-    const totalShare = result.shareOfVoice.primaryBrand + 
-                      result.shareOfVoice.competitors.reduce((sum, comp) => sum + comp.share, 0);
+    const totalShare =
+      result.shareOfVoice.primaryBrand +
+      result.shareOfVoice.competitors.reduce(
+        (sum, comp) => sum + comp.share,
+        0,
+      );
     expect(totalShare).toBe(100);
   });
 
@@ -167,7 +179,9 @@ describe('competitiveIntelligenceTool', () => {
     expect(result.marketPosition.competitiveScore).toBe(0);
     expect(result.shareOfVoice.primaryBrand).toBe(0);
     expect(result.competitiveGaps).toHaveLength(0);
-    expect(result.strategicRecommendations[0]).toContain('Competitive analysis failed: API Error');
+    expect(result.strategicRecommendations[0]).toContain(
+      'Competitive analysis failed: API Error',
+    );
   });
 
   test('should validate input parameters', async () => {
@@ -204,7 +218,7 @@ describe('competitiveIntelligenceTool', () => {
 
   test('should handle different timeframes correctly', async () => {
     const timeframes = ['week', 'month', 'quarter'] as const;
-    
+
     for (const timeframe of timeframes) {
       const result = await competitiveIntelligenceTool.execute({
         primaryBrand: 'Tesla',
@@ -227,7 +241,7 @@ describe('competitiveIntelligenceTool', () => {
 
     expect(result.shareOfVoice.primaryBrand).toBeGreaterThan(0);
     expect(result.shareOfVoice.competitors).toHaveLength(2);
-    
+
     result.shareOfVoice.competitors.forEach((competitor) => {
       expect(competitor.name).toBeDefined();
       expect(competitor.share).toBeGreaterThanOrEqual(0);
@@ -246,7 +260,9 @@ describe('competitiveIntelligenceTool', () => {
 
     expect(result.marketPosition.competitiveScore).toBeGreaterThan(0);
     expect(result.marketPosition.overallRank).toBeGreaterThan(0);
-    expect(result.marketPosition.overallRank).toBeLessThanOrEqual(result.marketPosition.totalCompetitors);
+    expect(result.marketPosition.overallRank).toBeLessThanOrEqual(
+      result.marketPosition.totalCompetitors,
+    );
   });
 
   test('should handle industry context', async () => {
@@ -285,7 +301,9 @@ describe('Competitive Analysis Logic', () => {
 
     // The primary brand should have a rank
     expect(result.marketPosition.overallRank).toBeGreaterThan(0);
-    expect(result.marketPosition.overallRank).toBeLessThanOrEqual(result.marketPosition.totalCompetitors);
+    expect(result.marketPosition.overallRank).toBeLessThanOrEqual(
+      result.marketPosition.totalCompetitors,
+    );
   });
 
   test('should identify high-impact competitive gaps', async () => {
@@ -296,7 +314,9 @@ describe('Competitive Analysis Logic', () => {
       timeframe: 'week',
     });
 
-    const highImpactGaps = result.competitiveGaps.filter((gap) => gap.impact === 'high');
+    const highImpactGaps = result.competitiveGaps.filter(
+      (gap) => gap.impact === 'high',
+    );
     expect(highImpactGaps.length).toBeGreaterThan(0);
   });
 
@@ -311,11 +331,11 @@ describe('Competitive Analysis Logic', () => {
 
     expect(result.strategicRecommendations.length).toBeGreaterThan(0);
     result.strategicRecommendations.forEach((recommendation) => {
-      expect(recommendation).toContain('Focus on') || 
-      expect(recommendation).toContain('Develop') || 
-      expect(recommendation).toContain('Implement') ||
-      expect(recommendation).toContain('Increase') ||
-      expect(recommendation).toContain('Monitor');
+      expect(recommendation).toContain('Focus on') ||
+        expect(recommendation).toContain('Develop') ||
+        expect(recommendation).toContain('Implement') ||
+        expect(recommendation).toContain('Increase') ||
+        expect(recommendation).toContain('Monitor');
     });
   });
 });

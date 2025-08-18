@@ -8,6 +8,7 @@ import { actionImplementationAgent } from '@/lib/ai/tools/action-implementation-
 import { brandMonitorAgent } from '@/lib/ai/tools/brand-monitor-agent';
 import { brandMonitorTool } from '@/lib/ai/tools/brand-monitor-tool';
 import { competitiveIntelligenceTool } from '@/lib/ai/tools/competitive-intelligence-tool';
+import { contentOptimizationTool } from '@/lib/ai/tools/content-optimization-tool';
 import { createDocument } from '@/lib/ai/tools/create-document';
 import { getWeather } from '@/lib/ai/tools/get-weather';
 import { requestSuggestions } from '@/lib/ai/tools/request-suggestions';
@@ -213,6 +214,7 @@ export async function POST(request: Request) {
                     'brandMonitorAgent',
                     'brandMonitor',
                     'competitiveIntelligence',
+                    'contentOptimization',
                     'visibilityExplorerAgent',
                     'actionImplementationAgent',
                     'visibilityAcrossModels',
@@ -233,6 +235,7 @@ export async function POST(request: Request) {
                   brandMonitorAgent,
                   brandMonitor: brandMonitorTool,
                   competitiveIntelligence: competitiveIntelligenceTool,
+                  contentOptimization: contentOptimizationTool,
                   visibilityExplorerAgent,
                   actionImplementationAgent,
                   visibilityAcrossModels: visibilityAcrossModelsTool,
@@ -249,7 +252,8 @@ export async function POST(request: Request) {
               if (
                 toolCall.toolName === 'visibilityAcrossModels' ||
                 toolCall.toolName === 'brandMonitor' ||
-                toolCall.toolName === 'competitiveIntelligence'
+                toolCall.toolName === 'competitiveIntelligence' ||
+                toolCall.toolName === 'contentOptimization'
               ) {
                 await artifactProcessor.processToolResult(
                   toolCall.toolName,
