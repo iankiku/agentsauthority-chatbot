@@ -13,5 +13,10 @@
   "eslint.workingDirectories": [
     { "pattern": "app/*" },
     { "pattern": "packages/*" }
-  ]
+  ],
+  "workbench.colorCustomizations": {
+    "activityBar.background": "#1E322C",
+    "titleBar.activeBackground": "#2A453D",
+    "titleBar.activeForeground": "#F8FBFA"
+  }
 }

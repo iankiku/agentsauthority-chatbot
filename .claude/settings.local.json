@@ -1,0 +1,39 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(make:*)",
+      "Bash(rg:*)",
+      "Bash(pnpm dev:*)",
+      "Bash(curl:*)",
+      "Bash(timeout 30s pnpm dev)",
+      "Bash(timeout:*)",
+      "Bash(rm:*)",
+      "Bash(npm run lint:*)",
+      "Bash(pnpm drizzle-kit push:*)",
+      "Bash(pnpm drizzle-kit:*)",
+      "Bash(npx tsc:*)",
+      "Bash(node:*)",
+      "Bash(npm run build:*)",
+      "Bash(npx next build:*)",
+      "Bash(touch:*)",
+      "Bash(turbo lint:*)",
+      "Bash(pnpm run:*)",
+      "Bash(npx shadcn@latest add:*)",
+      "mcp__ide__getDiagnostics",
+      "Bash(pnpm add:*)",
+      "Bash(pnpm tsc:*)",
+      "Bash(git checkout:*)",
+      "Bash(pnpm lint:*)",
+      "Bash(pnpm install:*)",
+      "Bash(pkill:*)",
+      "Bash(pnpm build:*)",
+      "Bash(sed:*)",
+      "WebSearch",
+      "WebSearch",
+      "WebSearch"
+    ],
+    "deny": []
+  }
+}

@@ -1,0 +1,52 @@
+{
+    "mcpServers": {
+        "firecrawl": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "firecrawl-mcp"
+            ],
+            "env": {
+                "FIRECRAWL_API_KEY": "fc-405a1d50bf124c5f965461581d89362a"
+            }
+        },
+        "@magicuidesign/mcp": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@magicuidesign/mcp@latest"
+            ]
+        },
+        "shadcn": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "shadcn@canary",
+                "registry:mcp"
+            ],
+            "env": {
+                "REGISTRY_URL": "https://animate-ui.com/r/registry.json"
+            }
+        },
+        "context7": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@upstash/context7-mcp@latest"
+            ]
+        },
+        "remotion-documentation": {
+            "command": "npx",
+            "args": [
+                "@remotion/mcp@latest"
+            ]
+        },
+        "mastra": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@mastra/mcp-docs-server"
+            ]
+        }
+    }
+}
