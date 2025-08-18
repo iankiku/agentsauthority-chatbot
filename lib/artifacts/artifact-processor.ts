@@ -1,4 +1,5 @@
 import type { BrandMonitorResult } from '../ai/tools/brand-monitor-tool';
+import type { CompetitiveAnalysisResult } from '../ai/tools/competitive-intelligence-tool';
 import type { VisibilityAnalysisResult } from '../ai/tools/types';
 
 export interface ConversationContext {
@@ -29,12 +30,15 @@ export class ArtifactProcessor {
     result: any,
     context: ConversationContext,
   ): Promise<Artifact> {
-    switch (toolName) {
+        switch (toolName) {
       case 'visibilityAcrossModels':
         return this.createVisibilityArtifact(result, context);
-
+ 
       case 'brandMonitor':
         return this.createBrandMonitorArtifact(result, context);
+
+      case 'competitiveIntelligence':
+        return this.createCompetitiveIntelligenceArtifact(result, context);
 
       default:
         return this.createGenericArtifact(result, context);
@@ -81,6 +85,30 @@ export class ArtifactProcessor {
         category: 'brand-monitoring',
         tags: ['brand-monitoring', 'web-scraping', 'sentiment-analysis', 'geo'],
         generatedBy: 'brandMonitor',
+        userId: context.userId,
+        conversationId: context.conversationId,
+      },
+    };
+
+    await this.saveArtifact(artifact);
+    return artifact;
+  }
+
+  private async createCompetitiveIntelligenceArtifact(
+    result: CompetitiveAnalysisResult,
+    context: ConversationContext,
+  ): Promise<Artifact> {
+    const artifact: Artifact = {
+      id: this.generateId(),
+      type: 'competitive-intelligence',
+      title: `Competitive Analysis - ${result.primaryBrand} vs ${result.competitors.join(', ')}`,
+      content: result,
+      metadata: {
+        brandName: result.primaryBrand,
+        timestamp: new Date().toISOString(),
+        category: 'competitive-analysis',
+        tags: ['competitive-intelligence', 'market-analysis', 'competitive-positioning', 'geo'],
+        generatedBy: 'competitiveIntelligence',
         userId: context.userId,
         conversationId: context.conversationId,
       },

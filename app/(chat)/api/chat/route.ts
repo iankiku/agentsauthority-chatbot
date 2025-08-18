@@ -7,6 +7,7 @@ import { myProvider } from '@/lib/ai/providers';
 import { actionImplementationAgent } from '@/lib/ai/tools/action-implementation-agent';
 import { brandMonitorAgent } from '@/lib/ai/tools/brand-monitor-agent';
 import { brandMonitorTool } from '@/lib/ai/tools/brand-monitor-tool';
+import { competitiveIntelligenceTool } from '@/lib/ai/tools/competitive-intelligence-tool';
 import { createDocument } from '@/lib/ai/tools/create-document';
 import { getWeather } from '@/lib/ai/tools/get-weather';
 import { requestSuggestions } from '@/lib/ai/tools/request-suggestions';
@@ -211,6 +212,7 @@ export async function POST(request: Request) {
                     'requestSuggestions',
                     'brandMonitorAgent',
                     'brandMonitor',
+                    'competitiveIntelligence',
                     'visibilityExplorerAgent',
                     'actionImplementationAgent',
                     'visibilityAcrossModels',
@@ -230,6 +232,7 @@ export async function POST(request: Request) {
                   }),
                   brandMonitorAgent,
                   brandMonitor: brandMonitorTool,
+                  competitiveIntelligence: competitiveIntelligenceTool,
                   visibilityExplorerAgent,
                   actionImplementationAgent,
                   visibilityAcrossModels: visibilityAcrossModelsTool,
@@ -241,23 +244,24 @@ export async function POST(request: Request) {
           onToolCall: async ({ toolCall }) => {
             console.log(`Executing tool: ${toolCall.toolName}`, toolCall.args);
           },
-          onToolResult: async ({ toolCall, result }) => {
-            // Process tool result into artifact
-            if (
-              toolCall.toolName === 'visibilityAcrossModels' ||
-              toolCall.toolName === 'brandMonitor'
-            ) {
-              await artifactProcessor.processToolResult(
-                toolCall.toolName,
-                result,
-                {
-                  userId: session.user.id,
-                  conversationId: id,
-                  timestamp: new Date().toISOString(),
-                },
-              );
-            }
-          },
+                      onToolResult: async ({ toolCall, result }) => {
+              // Process tool result into artifact
+              if (
+                toolCall.toolName === 'visibilityAcrossModels' ||
+                toolCall.toolName === 'brandMonitor' ||
+                toolCall.toolName === 'competitiveIntelligence'
+              ) {
+                await artifactProcessor.processToolResult(
+                  toolCall.toolName,
+                  result,
+                  {
+                    userId: session.user.id,
+                    conversationId: id,
+                    timestamp: new Date().toISOString(),
+                  },
+                );
+              }
+            },
         });
 
         result.consumeStream();
