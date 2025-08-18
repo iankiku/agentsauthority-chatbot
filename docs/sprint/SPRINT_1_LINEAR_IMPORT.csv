@@ -1,0 +1,437 @@
+Title,Description,Priority,Status,Assignee,Labels,Estimate,Created,Completed
+"GEO-001: Multi-Model Client Setup","Create a robust multi-model client that can query ChatGPT, Claude, and Gemini in parallel to analyze brand visibility. This foundational component will power all multi-model analysis tools.
+
+## Key Features:
+- Parallel query execution across OpenAI GPT-4, Anthropic Claude, and Google Gemini
+- Brand mention counting and sentiment analysis algorithms
+- Visibility scoring system (0-100 scale)
+- Comprehensive error handling for API failures
+- TypeScript interfaces for all data structures
+
+## Technical Requirements:
+- Response time < 10 seconds for 3-model parallel query
+- Memory usage < 50MB during execution
+- 90%+ success rate for API calls
+- Proper rate limiting and timeout handling
+
+## File Structure:
+```
+lib/
+  ai/
+    multi-model-client.ts
+    types/
+      model-results.ts
+      sentiment-types.ts
+    utils/
+      brand-analysis.ts
+      error-handling.ts
+```
+
+## Dependencies:
+- OpenAI SDK, Anthropic SDK, Google AI SDK
+- API keys for all three providers
+- Existing AI configuration and providers
+
+## Success Criteria:
+- All three models queried successfully in parallel
+- Accurate brand mention detection and sentiment analysis
+- Proper error handling and graceful degradation
+- Integration ready for visibility scanner tool",P0,Todo,"[Developer Name]","backend,foundation,multi-model,ai",2,"2024-01-15",
+"GEO-002: Visibility Scanner Tool","Create a Vercel AI SDK tool that integrates with the multi-model client to provide comprehensive brand visibility analysis. This tool will be the primary interface for users to analyze their brand across ChatGPT, Claude, and Gemini.
+
+## Key Features:
+- Vercel AI SDK tool() function integration
+- Brand name parameter validation and processing
+- Custom query generation or user-provided queries
+- Real-time analysis across multiple AI platforms
+- Insight generation and strategic recommendations
+
+## Technical Implementation:
+- Tool registration with existing Vercel AI SDK setup
+- Integration with MultiModelClient for parallel queries
+- Response aggregation and analysis
+- Professional data structure for artifact generation
+
+## Response Structure:
+- Brand name and timestamp
+- Individual model results with scores
+- Overall visibility calculation
+- Platform-specific insights
+- Actionable recommendations
+
+## Performance Requirements:
+- Response time < 12 seconds total
+- Data size < 50KB payload
+- 95%+ tool execution success rate
+- Graceful handling of partial failures
+
+## Integration Points:
+- Works seamlessly with existing chat interface
+- Clear tool description for AI discovery
+- Natural language parameter extraction
+- Automatic artifact generation trigger",P0,Todo,"[Developer Name]","backend,tool,visibility,vercel-ai-sdk",2,"2024-01-15",
+"GEO-003: Visibility Matrix Artifact","Create a sophisticated React component that visualizes multi-model brand visibility data in a professional, business-ready format. This artifact will be the primary output of the visibility scanner tool and must be suitable for presentations and strategic decision-making.
+
+## Visual Requirements:
+- Brand name prominently displayed at top
+- Overall visibility score with visual gauge/progress bar
+- Individual model scores for ChatGPT, Claude, Gemini
+- Color-coded performance indicators (green/yellow/red)
+- Sentiment analysis visualization for each model
+- Professional business presentation quality
+
+## Interactive Features:
+- Hover states showing additional details
+- Clickable model names for expanded views
+- Responsive design for mobile and desktop
+- Accessibility compliance (ARIA labels, keyboard navigation)
+
+## Data Display:
+- Insights section with bullet points
+- Recommendations section with actionable items
+- Timestamp and analysis metadata
+- Source attribution and confidence indicators
+
+## Technical Implementation:
+- Uses existing design system components (Radix UI, Tailwind)
+- TypeScript interfaces for all props
+- Responsive breakpoints for all devices
+- Colorblind-friendly color schemes
+- Professional typography and spacing
+
+## Performance Requirements:
+- Render time < 500ms for complete visualization
+- Memory usage < 10MB for component tree
+- Smooth animations and transitions
+- Optimized for artifact rendering pipeline",P0,Todo,"[Developer Name]","frontend,artifact,visualization,react",2,"2024-01-15",
+"GEO-004: Tool Integration with Chat","Integrate the Visibility Scanner Tool with the existing chat system to enable seamless multi-model brand analysis. This includes tool registration, artifact generation, and ensuring the user experience flows naturally from question to insight.
+
+## Integration Requirements:
+- Tool registration with existing Vercel AI SDK setup
+- Natural language processing for visibility-related queries
+- Automatic artifact generation from tool results
+- Seamless chat interface integration
+- Error handling and user guidance
+
+## User Experience:
+- Natural language recognition of brand visibility queries
+- Informative loading states during tool execution
+- Helpful error messages and guidance
+- Smooth transition from query to visualization
+- Professional presentation of results
+
+## Technical Implementation:
+- Enhanced artifact processing pipeline
+- Tool result to artifact conversion
+- Chat API integration with tool execution
+- Database persistence for artifacts
+- Conversation context management
+
+## Data Flow:
+- User message → Natural language processing → Tool selection
+- Tool execution → Result processing → Artifact creation
+- Artifact rendering → Chat display → User interaction
+- Error handling → Fallback responses → User guidance
+
+## Quality Assurance:
+- End-to-end testing of complete user journey
+- Error scenario testing and handling
+- Performance validation under load
+- Mobile responsiveness verification
+- Accessibility compliance testing",P0,Todo,"[Developer Name]","integration,chat,user-experience,api",2,"2024-01-15",
+"GEO-005: Firecrawl Client Setup","Set up Firecrawl client for comprehensive web scraping capabilities. This will enable real-time brand mention monitoring across Reddit, HackerNews, Twitter, and other sources to provide comprehensive brand intelligence.
+
+## Key Features:
+- Firecrawl API integration for web scraping
+- Multi-source crawling (Reddit, HackerNews, Twitter, News)
+- Brand mention detection with fuzzy matching
+- Sentiment analysis for brand mentions
+- Rate limiting and error handling
+
+## Technical Implementation:
+- FirecrawlClient class with API integration
+- MentionDetector for brand name recognition
+- SentimentAnalyzer for content analysis
+- Parallel crawling across multiple sources
+- Data processing and aggregation
+
+## Data Quality:
+- 90%+ accuracy in brand mention detection
+- Sentiment analysis correlation with manual review
+- Duplicate mention detection and removal
+- Context extraction around mentions
+- Credibility scoring for sources
+
+## Performance Requirements:
+- Scraping time < 30 seconds for standard queries
+- Memory usage < 100MB during operations
+- Concurrent request handling (5+ simultaneous)
+- Graceful degradation with API failures
+- Intelligent caching for repeated queries
+
+## Source Configuration:
+- Reddit: Subreddit and post scraping
+- HackerNews: Story and comment analysis
+- Twitter: Tweet and thread monitoring
+- News: Article and headline tracking
+- Custom source addition capability",P0,Todo,"[Developer Name]","backend,web-scraping,firecrawl,monitoring",1.5,"2024-01-16",
+"GEO-006: Brand Monitor Tool","Create a Vercel AI SDK tool that integrates with the Firecrawl client to provide comprehensive brand monitoring across web sources. This tool will enable users to track brand mentions, analyze sentiment, and identify trending topics through conversational queries.
+
+## Key Features:
+- Vercel AI SDK tool() function integration
+- Multi-source brand mention monitoring
+- Sentiment analysis and trending topic identification
+- Competitor mention analysis (optional)
+- Engagement metrics and source breakdown
+
+## Technical Implementation:
+- Integration with FirecrawlClient for web scraping
+- Brand mention aggregation across sources
+- Sentiment distribution calculation
+- Trending topic extraction and analysis
+- Competitor mention detection and comparison
+
+## Analysis Capabilities:
+- Overall sentiment distribution (positive/neutral/negative)
+- Source performance breakdown
+- Trending topics with mention counts
+- Top mentions by engagement
+- Competitor analysis and positioning
+
+## Insight Generation:
+- Sentiment-based insights and recommendations
+- Source-specific performance analysis
+- Trending topic identification and opportunities
+- Engagement analysis and community insights
+- Competitive positioning recommendations
+
+## Performance Requirements:
+- Execution time < 45 seconds total
+- Memory usage < 150MB during execution
+- Concurrent request handling
+- Graceful error handling and fallbacks
+- Optimized data processing pipeline",P0,Todo,"[Developer Name]","backend,tool,brand-monitoring,web-intelligence",2,"2024-01-16",
+"GEO-007: Brand Mention Intelligence Artifact","Create a comprehensive React component that visualizes brand mention monitoring data in a professional, business-ready format. This artifact will display sentiment analysis, trending topics, and source breakdowns for strategic decision-making.
+
+## Visual Components:
+- Brand name and monitoring period header
+- Sentiment distribution pie chart
+- Source breakdown with mention counts
+- Trending topics word cloud or list
+- Top mentions with engagement metrics
+- Competitor analysis comparison (if enabled)
+
+## Interactive Features:
+- Clickable sentiment segments for detailed view
+- Expandable source breakdowns
+- Trending topic drill-down capabilities
+- Mention detail expansion
+- Export functionality for reports
+
+## Data Visualization:
+- Color-coded sentiment indicators
+- Engagement metrics with visual hierarchy
+- Source performance comparisons
+- Trend analysis over time
+- Competitive positioning charts
+
+## Professional Quality:
+- Business presentation ready design
+- Executive summary section
+- Actionable insights highlighting
+- Professional color schemes
+- Mobile-responsive layout
+
+## Technical Requirements:
+- Chart.js or D3.js for data visualization
+- Responsive design for all screen sizes
+- Accessibility compliance
+- Performance optimization for large datasets
+- Integration with artifact rendering system",P1,Todo,"[Developer Name]","frontend,artifact,data-visualization,monitoring",1.5,"2024-01-16",
+"GEO-008: Keyword Opportunity Scanner","Create an intelligent keyword opportunity scanner that analyzes search patterns across AI platforms to identify high-value keyword opportunities for GEO optimization.
+
+## Key Features:
+- Multi-platform keyword analysis (ChatGPT, Claude, Gemini)
+- Search volume and competition analysis
+- Keyword opportunity scoring and ranking
+- Content gap identification
+- Strategic recommendation generation
+
+## Technical Implementation:
+- Integration with multi-model client for keyword queries
+- Keyword opportunity scoring algorithm
+- Competition analysis across platforms
+- Content gap detection and prioritization
+- Strategic recommendation engine
+
+## Analysis Capabilities:
+- Search volume estimation across platforms
+- Competition level assessment
+- Keyword difficulty scoring
+- Content gap identification
+- ROI potential calculation
+
+## Output Structure:
+- Ranked keyword opportunities
+- Search volume and competition metrics
+- Content gap analysis
+- Strategic recommendations
+- Implementation priority scoring
+
+## Performance Requirements:
+- Analysis time < 20 seconds per keyword set
+- Support for 50+ keywords per analysis
+- Real-time scoring and ranking
+- Concurrent analysis capabilities
+- Graceful handling of API limitations",P0,Todo,"[Developer Name]","backend,tool,keyword-research,seo",2.5,"2024-01-16",
+"GEO-009: Competitive Intelligence Tool","Create a sophisticated competitive intelligence tool that analyzes multiple brands simultaneously across AI platforms, providing market positioning, share of voice, and strategic recommendations. This tool will be the foundation for competitive analysis artifacts.
+
+## Key Features:
+- Multi-brand competitive analysis
+- Market positioning and share of voice calculation
+- Competitive gap identification
+- Strategic recommendation generation
+- Industry benchmarking capabilities
+
+## Technical Implementation:
+- Integration with multi-model client for brand analysis
+- Competitive positioning matrix calculation
+- Share of voice percentage analysis
+- Gap identification algorithm
+- Strategic recommendation engine
+
+## Analysis Capabilities:
+- Overall market rank and positioning
+- Share of voice across platforms
+- Competitive advantage identification
+- Threat and opportunity analysis
+- Strategic positioning recommendations
+
+## Output Structure:
+- Market positioning matrix
+- Share of voice breakdown
+- Competitive gaps and opportunities
+- Strategic recommendations
+- Industry benchmarking data
+
+## Performance Requirements:
+- Analysis time < 15 seconds for 4-brand comparison
+- Support for up to 10 competitors
+- Real-time positioning calculation
+- Comprehensive gap analysis
+- Professional recommendation quality",P0,Todo,"[Developer Name]","backend,tool,competitive-intelligence,market-analysis",2,"2024-01-17",
+"GEO-010: Content Optimization Tool","Create an intelligent content optimization tool that analyzes existing content, identifies optimization opportunities, and provides specific recommendations for improving GEO performance across ChatGPT, Claude, and Gemini platforms.
+
+## Key Features:
+- Multi-platform content analysis
+- Platform-specific optimization recommendations
+- Content structure and format suggestions
+- Keyword integration strategies
+- Performance scoring and benchmarking
+
+## Technical Implementation:
+- Content analysis across AI platforms
+- Platform-specific scoring algorithms
+- Optimization recommendation engine
+- Content structure analysis
+- Keyword density and placement optimization
+
+## Analysis Capabilities:
+- Platform-specific content scoring
+- Content structure optimization
+- Keyword integration analysis
+- Format and style recommendations
+- Performance improvement tracking
+
+## Output Structure:
+- Platform-specific analysis scores
+- Content optimization recommendations
+- Structure and format suggestions
+- Keyword integration strategies
+- Overall optimization score
+
+## Performance Requirements:
+- Analysis time < 10 seconds for content review
+- Support for content up to 10,000 words
+- Real-time optimization scoring
+- Platform-specific recommendations
+- Actionable improvement suggestions",P0,Todo,"[Developer Name]","backend,tool,content-optimization,seo",2,"2024-01-17",
+"GEO-011: Artifact Categorization System","Create an intelligent artifact categorization system that automatically tags artifacts based on their content, type, and context. This system will enable future dashboard organization and improve the user experience by making artifacts easily discoverable and searchable.
+
+## Key Features:
+- Automatic artifact categorization by type
+- Intelligent tagging with relevant keywords
+- Priority level assignment based on content
+- Related artifact identification
+- Search and filtering capabilities
+
+## Technical Implementation:
+- ArtifactCategorizer class for automatic processing
+- Category determination algorithm
+- Tag extraction and assignment
+- Priority calculation system
+- Related artifact discovery
+
+## Categorization Logic:
+- Type-based categorization (visibility, competitive, content)
+- Brand name and keyword extraction
+- Platform and industry tagging
+- Priority scoring based on content importance
+- Confidence scoring for categorization accuracy
+
+## Database Integration:
+- Extended artifact schema with categorization fields
+- Automatic categorization during artifact creation
+- Search and filter query optimization
+- Related artifact linking
+- Category-based organization
+
+## Performance Requirements:
+- Categorization time < 500ms per artifact
+- Database operations < 200ms for queries
+- Support for 1000+ artifacts
+- Real-time categorization during creation
+- Efficient search and filtering",P1,Todo,"[Developer Name]","backend,categorization,organization,database",1,"2024-01-17",
+"GEO-012: Demo Preparation & QA","Comprehensive demo preparation, end-to-end testing, and quality assurance to ensure Friday demo execution is professional and compelling. This includes demo script finalization, scenario testing, fallback preparation, and performance validation.
+
+## Demo Functionality:
+- Multi-model visibility analysis end-to-end testing
+- Brand monitoring with web scraping validation
+- Keyword opportunity analysis verification
+- Competitive intelligence tool testing
+- Content optimization tool validation
+
+## Demo Content:
+- Demo script covering all key value propositions
+- Realistic demo data providing compelling insights
+- Professional presentation materials
+- Fallback scenarios for technical issues
+- Q&A preparation and response scripts
+
+## Technical Reliability:
+- All systems tested under demo conditions
+- Performance benchmarks validation
+- Error handling and fallback testing
+- Network resilience and timeout handling
+- Concurrent user testing
+
+## Presentation Quality:
+- Visual artifacts meeting business standards
+- Professional color schemes and typography
+- Mobile responsiveness verification
+- Loading state optimization
+- Smooth transitions and animations
+
+## Demo Scenarios:
+- Primary: Tesla brand visibility analysis
+- Fallback: Apple brand monitoring
+- Backup: Nike keyword opportunities
+- All scenarios tested and rehearsed
+- Performance benchmarks met consistently
+
+## Success Criteria:
+- All demo scenarios execute within time limits
+- Professional visual quality maintained
+- Error handling works gracefully
+- Q&A responses prepared and practiced
+- Technical metrics meet benchmarks",P0,Todo,"[Developer Name]","qa,demo,testing,polish",3,"2024-01-17",

@@ -1,0 +1,105 @@
+---
+alwaysApply: true
+---
+## PIPER-5: Prompt • Innovate • Plan • Execute • Review • YOLO
+
+_This is the canonical project-management protocol for Vibeflow repositories._
+
+---
+
+### 🧭 OVERVIEW
+
+> **Action Modes ↔ Role Responsibility:**
+>
+> * **Prompt Engineer** ↔️ **RESEARCH**
+> * **Innovation Partner** ↔️ **INNOVATE**
+> * **Principal Product Manager** ↔️ **PLAN**
+> * **Engineers (Frontend, Backend, DB)** ↔️ **EXECUTE**
+> * **QA & Release Specialist** ↔️ **REVIEW**
+>
+> *Optional Autonomous Mode:* **YOLO** (automatic mode-switching with local commits)
+
+---
+
+## 🧠 CORE PRINCIPLES
+
+1. **Explicit Modes Only** – operate in a single mode at a time.
+2. **No Silent Changes** – all code/spec changes require an approved plan.
+3. **Plans Before Commits** – EXECUTE must follow a checklist created in PLAN.
+4. **Traceable Progress** – every task logs to `.tasks/YYYY-MM-DD_x_task-id.md`.
+5. **Human Gatekeeping** – commits are local only; push after REVIEW approval.
+6. **Read the Guardrails** – see `docs` → [`guardrails.md`](mdc:guardrails.md).
+
+---
+
+## ✅ MODE DECLARATION FORMAT
+
+Every chat or PR comment starts with the current mode label, for example:
+```
+[MODE: PLAN] (role: Product Manager)
+```
+
+---
+
+## 🔁 MODES OF OPERATION
+
+### 1. `[MODE: RESEARCH]`  (Prompt Engineer)
+* Understand the task, collect facts, list questions.
+
+### 2. `[MODE: INNOVATE]`  (Prompt Engineer / Product Manager)
+* Explore multiple implementation options, pros/cons, trade-offs.
+
+### 3. `[MODE: PLAN]`  (Product Manager)
+* Produce the implementation spec & checklist.
+
+### 4. `[MODE: EXECUTE]`  (Engineer)
+* Implement **only** what the PLAN describes.
+
+### 5. `[MODE: REVIEW]`  (QA Engineer / Product Manager)
+* Validate code matches the PLAN 1-for-1.
+
+### 6. `[MODE: YOLO]` (Autonomous)
+* RESEARCH → INNOVATE → PLAN → EXECUTE → REVIEW in one go, **local commits only**.
+
+---
+
+## 📄 TASK FILE TEMPLATE
+
+Copy this into `.tasks/` when opening a new ticket.
+```markdown
+# Context
+Created at: 2025-07-01
+Created by: <USER>
+Main branch: main
+Task branch: <branch-name>
+YOLO Mode: [YES|NO]
+
+# Task Description
+<High-level summary>
+
+# Project Overview
+<Repo path, stack, context>
+
+⚠️ WARNING: NEVER MODIFY THIS SECTION ⚠️
+Paste the **entire** PIPER-5 protocol here.
+⚠️ WARNING: NEVER MODIFY THIS SECTION ⚠️
+
+# Analysis
+[MODE: RESEARCH output]
+
+# Proposed Solution
+[MODE: PLAN spec]
+
+# Current Step
+"[CHECKLIST STEP]"
+
+# Task Progress
+- [Time] — [Step note]
+
+# Final Review
+[REVIEW verdict]
+```
+
+---
+
+**Remember:**  Guardrails → `./guardrails.md`.  Violations fail CI.
