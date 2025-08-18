@@ -6,11 +6,16 @@ import { systemPrompt, type RequestHints } from '@/lib/ai/prompts';
 import { myProvider } from '@/lib/ai/providers';
 import { actionImplementationAgent } from '@/lib/ai/tools/action-implementation-agent';
 import { brandMonitorAgent } from '@/lib/ai/tools/brand-monitor-agent';
+import { brandMonitorTool } from '@/lib/ai/tools/brand-monitor-tool';
+import { competitiveIntelligenceTool } from '@/lib/ai/tools/competitive-intelligence-tool';
+import { contentOptimizationTool } from '@/lib/ai/tools/content-optimization-tool';
 import { createDocument } from '@/lib/ai/tools/create-document';
 import { getWeather } from '@/lib/ai/tools/get-weather';
 import { requestSuggestions } from '@/lib/ai/tools/request-suggestions';
 import { updateDocument } from '@/lib/ai/tools/update-document';
+import { visibilityAcrossModelsTool } from '@/lib/ai/tools/visibility-across-models-tool';
 import { visibilityExplorerAgent } from '@/lib/ai/tools/visibility-explorer-agent';
+import { ArtifactProcessor } from '@/lib/artifacts/artifact-processor';
 import { isProductionEnvironment } from '@/lib/constants';
 import {
   createStreamId,
@@ -151,21 +156,14 @@ export async function POST(request: Request) {
     const streamId = generateUUID();
     await createStreamId({ streamId, chatId: id });
 
+    // Initialize artifact processor
+    const artifactProcessor = new ArtifactProcessor();
+
     const stream = createUIMessageStream({
       execute: ({ writer: dataStream }) => {
-        console.log('Chat API - Starting stream execution');
-        console.log('Chat API - selectedChatModel:', selectedChatModel);
-        console.log('Chat API - uiMessages:', uiMessages);
-        console.log(
-          'Chat API - uiMessages[0].parts:',
-          JSON.stringify(uiMessages[0]?.parts, null, 2),
-        );
-
-        console.log('Chat API - About to call convertToModelMessages');
-
         // Custom conversion function to handle UI messages properly
         const modelMessages = uiMessages
-          .filter((msg) => msg.parts && msg.parts.length > 0) // Only include messages with content
+          .filter((msg) => msg.parts && msg.parts.length > 0)
           .map((msg) => ({
             role: msg.role,
             content: msg.parts
@@ -174,25 +172,13 @@ export async function POST(request: Request) {
               .join(' ')
               .trim(),
           }))
-          .filter((msg) => msg.content.length > 0); // Only include messages with non-empty content
+          .filter((msg) => msg.content.length > 0);
 
-        console.log('Chat API - modelMessages:', modelMessages);
-        console.log(
-          'Chat API - modelMessages[0].content:',
-          JSON.stringify(modelMessages[0]?.content, null, 2),
-        );
-
-        console.log('Chat API - About to call myProvider.languageModel');
-        const model = myProvider.languageModel(selectedChatModel);
-        console.log('Chat API - model:', model);
-
-        console.log('Chat API - About to call streamText');
         const result = streamText({
-          model: model,
+          model: myProvider.languageModel(selectedChatModel),
           system: systemPrompt({ selectedChatModel, requestHints }),
           messages: modelMessages,
           stopWhen: stepCountIs(5),
-          // For Mastra agents, tools are built-in, so we don't need external tools
           experimental_activeTools:
             selectedChatModel === 'weather-agent'
               ? []
@@ -204,11 +190,14 @@ export async function POST(request: Request) {
                     'updateDocument',
                     'requestSuggestions',
                     'brandMonitorAgent',
+                    'brandMonitor',
+                    'competitiveIntelligence',
+                    'contentOptimization',
                     'visibilityExplorerAgent',
                     'actionImplementationAgent',
+                    'visibilityAcrossModels',
                   ],
           experimental_transform: smoothStream({ chunking: 'word' }),
-          // Only provide tools for non-Mastra models
           tools:
             selectedChatModel === 'weather-agent'
               ? {}
@@ -221,12 +210,35 @@ export async function POST(request: Request) {
                     dataStream,
                   }),
                   brandMonitorAgent,
+                  brandMonitor: brandMonitorTool,
+                  competitiveIntelligence: competitiveIntelligenceTool,
+                  contentOptimization: contentOptimizationTool,
                   visibilityExplorerAgent,
                   actionImplementationAgent,
+                  visibilityAcrossModels: visibilityAcrossModelsTool,
                 },
           experimental_telemetry: {
             isEnabled: isProductionEnvironment,
             functionId: 'stream-text',
+          },
+          onToolResult: async ({ toolCall, result }) => {
+            // Process tool result into artifact
+            if (
+              toolCall.toolName === 'visibilityAcrossModels' ||
+              toolCall.toolName === 'brandMonitor' ||
+              toolCall.toolName === 'competitiveIntelligence' ||
+              toolCall.toolName === 'contentOptimization'
+            ) {
+              await artifactProcessor.processToolResult(
+                toolCall.toolName,
+                result,
+                {
+                  userId: session.user.id,
+                  conversationId: id,
+                  timestamp: new Date().toISOString(),
+                },
+              );
+            }
           },
         });
 
@@ -272,7 +284,6 @@ export async function POST(request: Request) {
       return error.toResponse();
     }
 
-    // Handle other errors
     console.error('Chat API error:', error);
     return new ChatSDKError('bad_request:api').toResponse();
   }
