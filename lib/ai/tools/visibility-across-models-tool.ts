@@ -48,6 +48,37 @@ export const visibilityAcrossModelsTool = tool({
         analysisQueries,
       );
 
+      // Check if any models were available
+      if (modelResults.length === 0) {
+        return {
+          brandName,
+          timestamp: new Date().toISOString(),
+          timeframe,
+          modelResults: [],
+          overallVisibility: 0,
+          insights: [
+            'No AI models are currently available for analysis.',
+            'Please ensure you have configured at least one of the following API keys:',
+            '- OPENAI_API_KEY (for ChatGPT/GPT-4)',
+            '- ANTHROPIC_API_KEY (for Claude)',
+            '- GOOGLE_API_KEY (for Gemini)',
+          ],
+          recommendations: includeRecommendations
+            ? [
+                'Configure your OpenAI API key to enable brand visibility analysis',
+                'You can get an OpenAI API key from https://platform.openai.com/api-keys',
+              ]
+            : [],
+          metadata: {
+            executionTime: Date.now() - startTime,
+            modelsQueried: [],
+            queriesUsed: queries,
+            category: 'visibility-analysis',
+            error: 'No AI models available',
+          },
+        };
+      }
+
       // Calculate overall visibility score
       const overallVisibility = calculateOverallVisibility(modelResults);
 

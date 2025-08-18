@@ -31,13 +31,15 @@ export interface SentimentResult {
   neutralContext: string[];
 }
 
-export type WebSource = 'reddit' | 'hackernews' | 'twitter' | 'news';
+export type WebSource = 'reddit' | 'hackernews' | 'twitter' | 'news' | 'blogs';
 
 export interface CrawlOptions {
   timeframe?: 'day' | 'week' | 'month';
   limit?: number;
+  maxResults?: number;
   includeComments?: boolean;
   minEngagement?: number;
+  includeEngagement?: boolean;
 }
 
 export interface RawCrawlResult {
@@ -54,15 +56,15 @@ export interface RawCrawlResult {
 }
 
 export interface SourceConfig {
-  url: string;
-  limit: number;
-  searchParams: Record<string, string>;
-  selectors?: {
-    title?: string;
-    content?: string;
-    author?: string;
-    publishedAt?: string;
-  };
+  brandName: string;
+  timeframe: 'day' | 'week' | 'month';
+  maxResults: number;
+  includeEngagement: boolean;
+  subreddits?: string[];
+  sortBy?: string;
+  timeRange?: string;
+  includeRetweets?: boolean;
+  language?: string;
 }
 
 export interface CrawlResponse {
@@ -88,7 +90,7 @@ export interface BrandMonitoringResponse {
   summary: {
     totalMentions: number;
     averageSentiment: 'positive' | 'neutral' | 'negative';
-    topSources: WebSource[];
+    topSources: string[];
     trendingTopics: string[];
     executionTime: number;
   };

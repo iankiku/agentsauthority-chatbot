@@ -1,6 +1,7 @@
 import { anthropic } from '@ai-sdk/anthropic';
 import { google } from '@ai-sdk/google';
 import { openai } from '@ai-sdk/openai';
+import { generateText } from 'ai';
 import type {
   BrandAnalysisRequest,
   BrandAnalysisResponse,
@@ -33,36 +34,90 @@ export class MultiModelClient {
     this.initializeModels();
   }
 
+  private hasValidApiKey(provider: string): boolean {
+    switch (provider) {
+      case 'openai':
+        return !!process.env.OPENAI_API_KEY;
+      case 'anthropic':
+        return !!process.env.ANTHROPIC_API_KEY;
+      case 'google':
+        return !!process.env.GOOGLE_API_KEY;
+      default:
+        return false;
+    }
+  }
+
   private initializeModels(): void {
-    // Configure models
-    this.models.set('gpt-4', {
-      name: 'OpenAI GPT-4',
-      provider: 'openai',
-      modelId: 'gpt-4o',
-      maxTokens: 2000,
-      temperature: 0.7,
+    // Only initialize models that have valid API keys
+    const availableModels: Array<{ key: string; config: ModelConfig }> = [];
+
+    // Check OpenAI
+    if (this.hasValidApiKey('openai')) {
+      availableModels.push({
+        key: 'gpt-4',
+        config: {
+          name: 'OpenAI GPT-4',
+          provider: 'openai',
+          modelId: 'gpt-4o',
+          maxTokens: 2000,
+          temperature: 0.7,
+        },
+      });
+      this.providers.set('openai', openai);
+    } else {
+      console.warn('OpenAI API key not configured - skipping GPT-4');
+    }
+
+    // Check Anthropic
+    if (this.hasValidApiKey('anthropic')) {
+      availableModels.push({
+        key: 'claude',
+        config: {
+          name: 'Anthropic Claude',
+          provider: 'anthropic',
+          modelId: 'claude-3-5-sonnet-20241022',
+          maxTokens: 2000,
+          temperature: 0.7,
+        },
+      });
+      this.providers.set('anthropic', anthropic);
+    } else {
+      console.warn('Anthropic API key not configured - skipping Claude');
+    }
+
+    // Check Google
+    if (this.hasValidApiKey('google')) {
+      availableModels.push({
+        key: 'gemini',
+        config: {
+          name: 'Google Gemini',
+          provider: 'google',
+          modelId: 'gemini-1.5-flash',
+          maxTokens: 2000,
+          temperature: 0.7,
+        },
+      });
+      this.providers.set('google', google);
+    } else {
+      console.warn('Google API key not configured - skipping Gemini');
+    }
+
+    // Add available models to the map
+    availableModels.forEach(({ key, config }) => {
+      this.models.set(key, config);
     });
 
-    this.models.set('claude', {
-      name: 'Anthropic Claude',
-      provider: 'anthropic',
-      modelId: 'claude-3-5-sonnet-20241022',
-      maxTokens: 2000,
-      temperature: 0.7,
-    });
-
-    this.models.set('gemini', {
-      name: 'Google Gemini',
-      provider: 'google',
-      modelId: 'gemini-1.5-flash',
-      maxTokens: 2000,
-      temperature: 0.7,
-    });
-
-    // Initialize providers
-    this.providers.set('openai', openai);
-    this.providers.set('anthropic', anthropic);
-    this.providers.set('google', google);
+    // Ensure we have at least one model available
+    if (this.models.size === 0) {
+      console.error('No AI providers configured with valid API keys!');
+      console.error(
+        'Please configure at least one of: OPENAI_API_KEY, ANTHROPIC_API_KEY, or GOOGLE_API_KEY',
+      );
+    } else {
+      console.log(
+        `Initialized ${this.models.size} AI model(s): ${Array.from(this.models.keys()).join(', ')}`,
+      );
+    }
   }
 
   /**
@@ -75,7 +130,13 @@ export class MultiModelClient {
     const startTime = Date.now();
     const results: ModelResult[] = [];
 
-    // Create promises for all model queries
+    // If no models are available, return empty results
+    if (this.models.size === 0) {
+      console.warn('No AI models available for querying');
+      return results;
+    }
+
+    // Create promises for all available model queries
     const queryPromises = Array.from(this.models.entries()).map(
       async ([modelKey, modelConfig]) => {
         const modelStartTime = Date.now();
@@ -130,7 +191,7 @@ export class MultiModelClient {
   }
 
   /**
-   * Query a single model
+   * Query a single model using real API calls
    */
   private async queryModel(
     modelConfig: ModelConfig,
@@ -145,13 +206,15 @@ export class MultiModelClient {
     }
 
     try {
-      const response = await provider(modelConfig.modelId).generateText({
+      // Use real AI SDK generateText for actual API calls
+      const { text } = await generateText({
+        model: provider(modelConfig.modelId),
         prompt: query,
         maxTokens: modelConfig.maxTokens,
         temperature: modelConfig.temperature,
       });
 
-      return response.text;
+      return text;
     } catch (error) {
       throw new ModelQueryError(
         modelConfig.name,
@@ -183,35 +246,21 @@ export class MultiModelClient {
         ? results.reduce((sum, result) => sum + result.visibility_score, 0) /
           results.length
         : 0;
-    const successRate =
-      results.length > 0
-        ? (results.filter((r) => r.success).length / results.length) * 100
-        : 0;
-    const sentiments = results.map((r) => r.sentiment);
-    const averageSentiment = calculateAverageSentiment(sentiments);
-    const totalExecutionTime = Date.now() - startTime;
+    const averageSentiment = calculateAverageSentiment(results);
+
+    const executionTime = Date.now() - startTime;
 
     return {
-      results,
-      total_mentions: totalMentions,
-      average_sentiment: averageSentiment,
-      average_visibility_score: Math.round(averageVisibilityScore),
-      total_execution_time: totalExecutionTime,
-      success_rate: Math.round(successRate),
+      brandName: request.brandName,
+      timestamp: new Date().toISOString(),
+      modelResults: results,
+      aggregatedMetrics: {
+        totalMentions,
+        averageVisibilityScore,
+        averageSentiment,
+        modelsQueried: results.length,
+      },
+      executionTime,
     };
-  }
-
-  /**
-   * Get available models
-   */
-  getAvailableModels(): string[] {
-    return Array.from(this.models.keys());
-  }
-
-  /**
-   * Check if a model is available
-   */
-  isModelAvailable(modelKey: string): boolean {
-    return this.models.has(modelKey);
   }
 }

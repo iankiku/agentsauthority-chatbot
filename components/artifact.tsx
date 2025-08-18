@@ -235,6 +235,16 @@ function PureArtifact({
   const { width: windowWidth, height: windowHeight } = useWindowSize();
   const isMobile = windowWidth ? windowWidth < 768 : false;
 
+  console.log('🎨 Artifact Component - Render state:', {
+    isVisible: artifact?.isVisible,
+    status: artifact?.status,
+    kind: artifact?.kind,
+    title: artifact?.title,
+    hasContent: !!artifact?.content,
+    isMobile,
+    windowWidth,
+  });
+
   const artifactDefinition = artifactDefinitions.find(
     (definition) => definition.kind === artifact.kind,
   );

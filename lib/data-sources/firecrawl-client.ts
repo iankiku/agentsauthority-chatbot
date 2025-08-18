@@ -1,3 +1,4 @@
+import FirecrawlApp from '@mendable/firecrawl-js';
 import type {
   BrandMentionResult,
   BrandMonitoringRequest,
@@ -13,11 +14,21 @@ import { SentimentAnalyzer } from './sentiment-analyzer';
 export class FirecrawlClient {
   private mentionDetector: MentionDetector;
   private sentimentAnalyzer: SentimentAnalyzer;
-  private rateLimitDelay: number = 1000; // 1 second between requests
+  private rateLimitDelay = 1000; // 1 second between requests
+  private app: FirecrawlApp;
 
   constructor() {
     this.mentionDetector = new MentionDetector();
     this.sentimentAnalyzer = new SentimentAnalyzer();
+
+    const apiKey = process.env.FIRECRAWL_API_KEY;
+    if (!apiKey) {
+      console.warn(
+        'FirecrawlClient: No API key configured, will return empty results',
+      );
+    }
+
+    this.app = new FirecrawlApp({ apiKey: apiKey || '' });
   }
 
   async crawlBrandMentions(
@@ -25,8 +36,10 @@ export class FirecrawlClient {
     sources: WebSource[] = ['reddit', 'hackernews', 'twitter'],
     options: CrawlOptions = {},
   ): Promise<BrandMentionResult[]> {
-    console.log(`Starting brand mention crawl for: ${brandName}`);
-    console.log(`Sources: ${sources.join(', ')}`);
+    console.log(
+      `🔍 FirecrawlClient - Starting brand mention crawl for: ${brandName}`,
+    );
+    console.log(`📊 FirecrawlClient - Sources: ${sources.join(', ')}`);
 
     const crawlPromises = sources.map((source) =>
       this.crawlSource(source, brandName, options),
@@ -40,6 +53,9 @@ export class FirecrawlClient {
     request: BrandMonitoringRequest,
   ): Promise<BrandMonitoringResponse> {
     const startTime = Date.now();
+    console.log(
+      `🎯 FirecrawlClient - Starting brand monitoring for: ${request.brandName}`,
+    );
 
     const results = await this.crawlBrandMentions(
       request.brandName,
@@ -58,6 +74,10 @@ export class FirecrawlClient {
     const averageSentiment = this.calculateAverageSentiment(sentiments);
     const topSources = this.getTopSources(results);
     const trendingTopics = this.extractTrendingTopics(results);
+
+    console.log(
+      `✅ FirecrawlClient - Brand monitoring completed in ${executionTime}ms`,
+    );
 
     return {
       brandName: request.brandName,
@@ -84,19 +104,162 @@ export class FirecrawlClient {
   ): Promise<RawCrawlResult[]> {
     try {
       const sourceConfig = this.getSourceConfig(source, brandName, options);
-      console.log(`Crawling ${source} with config:`, sourceConfig);
+      console.log(
+        `🌐 FirecrawlClient - Crawling ${source} with config:`,
+        sourceConfig,
+      );
 
-      // Simulate API call with delay for rate limiting
+      // Rate limiting
       await this.delay(this.rateLimitDelay);
 
-      // For now, return mock data since we don't have actual Firecrawl API
-      const mockResults = this.generateMockResults(source, brandName, options);
-
-      return mockResults;
+      // Use Firecrawl SDK search endpoint
+      return await this.searchWithFirecrawlSDK(source, brandName, options);
     } catch (error) {
-      console.error(`Error crawling ${source}:`, error);
+      console.error(`❌ FirecrawlClient - Error crawling ${source}:`, error);
       return [];
     }
+  }
+
+  private async searchWithFirecrawlSDK(
+    source: WebSource,
+    brandName: string,
+    options: CrawlOptions,
+  ): Promise<RawCrawlResult[]> {
+    try {
+      // Build search query based on source
+      const searchQuery = this.buildSearchQuery(source, brandName, options);
+      console.log(`🔍 FirecrawlClient - Search query: ${searchQuery}`);
+
+      // Use Firecrawl SDK search endpoint
+      const searchResponse = await this.app.search(searchQuery, {
+        limit: options.maxResults || 10,
+        scrapeOptions: {
+          formats: ['markdown', 'html'],
+          onlyMainContent: true,
+          timeout: 30000,
+        },
+        timeout: 60000,
+      });
+
+      if (!searchResponse.success) {
+        console.error(
+          '❌ FirecrawlClient - Search failed:',
+          searchResponse.error,
+        );
+        return [];
+      }
+
+      console.log(
+        `✅ FirecrawlClient - Search successful, found ${searchResponse.data.length} results`,
+      );
+
+      // Transform Firecrawl response to our format
+      return this.transformFirecrawlResponse(
+        searchResponse.data,
+        source,
+        brandName,
+      );
+    } catch (error) {
+      console.error('❌ FirecrawlClient - Search with SDK failed:', error);
+      return [];
+    }
+  }
+
+  private buildSearchQuery(
+    source: WebSource,
+    brandName: string,
+    options: CrawlOptions,
+  ): string {
+    const baseQuery = `"${brandName}"`;
+
+    switch (source) {
+      case 'reddit':
+        return `${baseQuery} site:reddit.com`;
+      case 'hackernews':
+        return `${baseQuery} site:news.ycombinator.com`;
+      case 'twitter':
+        return `${baseQuery} site:twitter.com OR site:x.com`;
+      case 'news':
+        return `${baseQuery} news`;
+      case 'blogs':
+        return `${baseQuery} blog`;
+      default:
+        return baseQuery;
+    }
+  }
+
+  private transformFirecrawlResponse(
+    data: any[],
+    source: WebSource,
+    brandName: string,
+  ): RawCrawlResult[] {
+    if (!Array.isArray(data)) {
+      console.warn('⚠️ FirecrawlClient - Invalid response data format');
+      return [];
+    }
+
+    return data.map((result: any) => ({
+      url: result.url || '',
+      title: result.title || result.metadata?.title || '',
+      content: result.markdown || result.html || result.description || '',
+      publishedAt:
+        this.extractPublishedDate(result) || new Date().toISOString(),
+      author: this.extractAuthor(result, source) || 'unknown',
+      engagement: this.extractEngagement(result, source),
+    }));
+  }
+
+  private extractPublishedDate(result: any): string | null {
+    // Try to extract date from various sources
+    if (result.metadata?.publishedAt) return result.metadata.publishedAt;
+    if (result.metadata?.date) return result.metadata.date;
+
+    // For Reddit, try to extract from URL
+    if (result.url?.includes('reddit.com')) {
+      const match = result.url.match(/\/(\d{4})\/(\d{2})\/(\d{2})/);
+      if (match) {
+        return new Date(`${match[1]}-${match[2]}-${match[3]}`).toISOString();
+      }
+    }
+
+    return null;
+  }
+
+  private extractAuthor(result: any, source: WebSource): string | null {
+    if (result.metadata?.author) return result.metadata.author;
+
+    // Extract from URL for Reddit
+    if (source === 'reddit' && result.url) {
+      const match = result.url.match(/\/u\/([^\/]+)/);
+      if (match) return match[1];
+    }
+
+    return null;
+  }
+
+  private extractEngagement(
+    result: any,
+    source: WebSource,
+  ): {
+    upvotes: number;
+    comments: number;
+    shares: number;
+  } {
+    // Default engagement metrics
+    const engagement = {
+      upvotes: 0,
+      comments: 0,
+      shares: 0,
+    };
+
+    // Try to extract from metadata if available
+    if (result.metadata?.engagement) {
+      engagement.upvotes = result.metadata.engagement.upvotes || 0;
+      engagement.comments = result.metadata.engagement.comments || 0;
+      engagement.shares = result.metadata.engagement.shares || 0;
+    }
+
+    return engagement;
   }
 
   private getSourceConfig(
@@ -104,188 +267,98 @@ export class FirecrawlClient {
     brandName: string,
     options: CrawlOptions,
   ): SourceConfig {
-    const baseConfigs = {
-      reddit: {
-        baseUrl: 'https://www.reddit.com/search',
-        searchParam: 'q',
-        timeParam: 't',
-        limitParam: 'limit',
-      },
-      hackernews: {
-        baseUrl: 'https://hn.algolia.com/api/v1/search',
-        searchParam: 'query',
-        timeParam: 'numericFilters',
-        limitParam: 'hitsPerPage',
-      },
-      twitter: {
-        baseUrl: 'https://twitter.com/search',
-        searchParam: 'q',
-        timeParam: 'since',
-        limitParam: 'count',
-      },
-      news: {
-        baseUrl: 'https://news.google.com/search',
-        searchParam: 'q',
-        timeParam: 'hl',
-        limitParam: 'num',
-      },
+    const baseConfig = {
+      brandName,
+      timeframe: options.timeframe || 'week',
+      maxResults: options.maxResults || 10,
+      includeEngagement: options.includeEngagement !== false,
     };
 
-    const config = baseConfigs[source];
-    const limit = options.limit || 20;
-    const timeframe = options.timeframe || 'week';
-
-    return {
-      url: config.baseUrl,
-      limit,
-      searchParams: {
-        [config.searchParam]: brandName,
-        [config.timeParam]: timeframe,
-        [config.limitParam]: limit.toString(),
-      },
-    };
+    switch (source) {
+      case 'reddit':
+        return {
+          ...baseConfig,
+          subreddits: ['technology', 'business', 'investing'],
+          sortBy: 'relevance',
+        };
+      case 'hackernews':
+        return {
+          ...baseConfig,
+          sortBy: 'points',
+          timeRange: 'week',
+        };
+      case 'twitter':
+        return {
+          ...baseConfig,
+          includeRetweets: false,
+          language: 'en',
+        };
+      default:
+        return baseConfig;
+    }
   }
 
-  private generateMockResults(
-    source: WebSource,
-    brandName: string,
-    options: CrawlOptions,
-  ): RawCrawlResult[] {
-    const mockData = {
-      reddit: [
-        {
-          url: `https://reddit.com/r/technology/comments/123/${brandName.toLowerCase()}-discussion`,
-          title: `${brandName} is revolutionizing the industry`,
-          content: `I think ${brandName} is doing amazing things. Their latest product is incredible.`,
-          publishedAt: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
-          author: 'tech_enthusiast',
-          engagement: { upvotes: 150, comments: 23, shares: 5 },
-        },
-        {
-          url: `https://reddit.com/r/business/comments/456/${brandName.toLowerCase()}-analysis`,
-          title: `${brandName} quarterly results discussion`,
-          content: `${brandName} reported strong earnings this quarter. The market seems positive.`,
-          publishedAt: new Date(Date.now() - 172800000).toISOString(), // 2 days ago
-          author: 'business_analyst',
-          engagement: { upvotes: 89, comments: 15, shares: 2 },
-        },
-      ],
-      hackernews: [
-        {
-          url: `https://news.ycombinator.com/item?id=123456`,
-          title: `${brandName} launches new AI feature`,
-          content: `${brandName} just announced their latest AI integration. This could be a game-changer.`,
-          publishedAt: new Date(Date.now() - 43200000).toISOString(), // 12 hours ago
-          author: 'hn_user',
-          engagement: { upvotes: 234, comments: 45, shares: 12 },
-        },
-      ],
-      twitter: [
-        {
-          url: `https://twitter.com/user/status/123456789`,
-          title: `${brandName} customer experience`,
-          content: `Just tried ${brandName}'s new service. Absolutely love it! #${brandName.toLowerCase()}`,
-          publishedAt: new Date(Date.now() - 21600000).toISOString(), // 6 hours ago
-          author: 'happy_customer',
-          engagement: { upvotes: 67, comments: 8, shares: 15 },
-        },
-      ],
-      news: [
-        {
-          url: `https://techcrunch.com/2024/01/15/${brandName.toLowerCase()}-announcement`,
-          title: `${brandName} announces major partnership`,
-          content: `${brandName} has partnered with a leading tech company to expand their market presence.`,
-          publishedAt: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
-          author: 'tech_reporter',
-          engagement: { upvotes: 0, comments: 0, shares: 0 },
-        },
-      ],
-    };
-
-    return mockData[source] || [];
-  }
-
-  private async processCrawlResults(
+  private processCrawlResults(
     results: PromiseSettledResult<RawCrawlResult[]>[],
     brandName: string,
-  ): Promise<BrandMentionResult[]> {
-    const processedResults: BrandMentionResult[] = [];
-
-    results.forEach((result, index) => {
-      if (result.status === 'fulfilled') {
-        const source = ['reddit', 'hackernews', 'twitter', 'news'][
-          index
-        ] as WebSource;
-
-        result.value.forEach((rawResult) => {
-          const mentions = this.mentionDetector.detectMentions(
-            rawResult.content,
-            brandName,
-          );
-
-          if (mentions.length > 0) {
-            const sentiment = this.sentimentAnalyzer.analyzeSentiment(
-              rawResult.content,
-              brandName,
-            );
-
-            const processedResult: BrandMentionResult = {
-              source,
-              url: rawResult.url,
-              title: rawResult.title,
-              content: rawResult.content,
-              mentions,
-              sentiment,
-              publishedAt: rawResult.publishedAt || new Date().toISOString(),
-              author: rawResult.author,
-              engagement: rawResult.engagement,
-              credibilityScore: this.calculateCredibilityScore(
-                rawResult,
-                source,
-              ),
-            };
-
-            processedResults.push(processedResult);
-          }
-        });
-      } else {
-        console.error(`Crawl result failed:`, result.reason);
-      }
-    });
-
-    return processedResults;
+  ): BrandMentionResult[] {
+    return results
+      .filter(
+        (result): result is PromiseFulfilledResult<RawCrawlResult[]> =>
+          result.status === 'fulfilled',
+      )
+      .map((result) => this.processSourceResults(result.value, brandName))
+      .filter((result) => result.mentions.length > 0);
   }
 
-  private calculateCredibilityScore(
-    rawResult: RawCrawlResult,
-    source: WebSource,
-  ): number {
+  private processSourceResults(
+    results: RawCrawlResult[],
+    brandName: string,
+  ): BrandMentionResult {
+    // Combine all content for analysis
+    const combinedContent = results
+      .map((r) => `${r.title} ${r.content}`)
+      .join(' ');
+
+    const mentions = this.mentionDetector.detectMentions(
+      combinedContent,
+      brandName,
+    );
+    const sentiment = this.sentimentAnalyzer.analyzeSentiment(
+      combinedContent,
+      brandName,
+    );
+
+    return {
+      source: 'reddit' as WebSource, // Default source, will be overridden by caller
+      url: results[0]?.url || '',
+      title: results[0]?.title || '',
+      content: results[0]?.content || '',
+      mentions,
+      sentiment,
+      publishedAt: results[0]?.publishedAt || new Date().toISOString(),
+      author: results[0]?.author || 'unknown',
+      engagement: results[0]?.engagement || {
+        upvotes: 0,
+        comments: 0,
+        shares: 0,
+      },
+      credibilityScore: this.calculateCredibilityScore(results[0]),
+    };
+  }
+
+  private calculateCredibilityScore(result: RawCrawlResult): number {
+    // Simple credibility scoring based on engagement and source
     let score = 0.5; // Base score
 
-    // Source credibility
-    const sourceScores = {
-      reddit: 0.7,
-      hackernews: 0.8,
-      twitter: 0.6,
-      news: 0.9,
-    };
-    score += sourceScores[source] * 0.3;
-
-    // Engagement credibility
-    if (rawResult.engagement) {
-      const totalEngagement =
-        (rawResult.engagement.upvotes || 0) +
-        (rawResult.engagement.comments || 0) +
-        (rawResult.engagement.shares || 0);
-
-      if (totalEngagement > 100) score += 0.2;
-      else if (totalEngagement > 50) score += 0.1;
-      else if (totalEngagement > 10) score += 0.05;
+    if (result.engagement) {
+      score += Math.min((result.engagement.upvotes || 0) / 100, 0.3);
+      score += Math.min((result.engagement.comments || 0) / 50, 0.2);
     }
 
-    // Content length credibility
-    if (rawResult.content.length > 200) score += 0.1;
-    else if (rawResult.content.length > 100) score += 0.05;
+    // Boost score for known sources
+    if (result.url.includes('reddit.com/r/technology')) score += 0.1;
+    if (result.url.includes('news.ycombinator.com')) score += 0.1;
 
     return Math.min(score, 1.0);
   }
@@ -295,69 +368,66 @@ export class FirecrawlClient {
   ): 'positive' | 'neutral' | 'negative' {
     if (sentiments.length === 0) return 'neutral';
 
-    const counts = {
+    const sentimentCounts = {
       positive: 0,
       neutral: 0,
       negative: 0,
     };
 
     sentiments.forEach((sentiment) => {
-      counts[sentiment]++;
+      sentimentCounts[sentiment]++;
     });
 
-    if (counts.positive > counts.negative && counts.positive > counts.neutral) {
+    // Return the most common sentiment
+    if (
+      sentimentCounts.positive > sentimentCounts.negative &&
+      sentimentCounts.positive > sentimentCounts.neutral
+    ) {
       return 'positive';
     } else if (
-      counts.negative > counts.positive &&
-      counts.negative > counts.neutral
+      sentimentCounts.negative > sentimentCounts.positive &&
+      sentimentCounts.negative > sentimentCounts.neutral
     ) {
       return 'negative';
+    } else {
+      return 'neutral';
     }
-
-    return 'neutral';
   }
 
-  private getTopSources(results: BrandMentionResult[]): WebSource[] {
-    const sourceCounts = new Map<WebSource, number>();
+  private getTopSources(results: BrandMentionResult[]): string[] {
+    const sourceCounts = results.reduce(
+      (acc, result) => {
+        acc[result.source] = (acc[result.source] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
 
-    results.forEach((result) => {
-      const count = sourceCounts.get(result.source) || 0;
-      sourceCounts.set(result.source, count + result.mentions.length);
-    });
-
-    return Array.from(sourceCounts.entries())
+    return Object.entries(sourceCounts)
       .sort(([, a], [, b]) => b - a)
       .slice(0, 3)
       .map(([source]) => source);
   }
 
   private extractTrendingTopics(results: BrandMentionResult[]): string[] {
-    const topics = new Set<string>();
+    // Simple topic extraction from titles and content
+    const allText = results
+      .map((r) => `${r.title} ${r.content}`)
+      .join(' ')
+      .toLowerCase();
 
-    // Simple topic extraction based on common words
-    const commonTopics = [
-      'AI',
+    const topics = [
+      'ai',
       'technology',
       'innovation',
+      'business',
       'product',
-      'service',
       'launch',
-      'announcement',
-      'partnership',
-      'earnings',
-      'growth',
+      'update',
+      'feature',
     ];
 
-    results.forEach((result) => {
-      const content = result.content.toLowerCase();
-      commonTopics.forEach((topic) => {
-        if (content.includes(topic.toLowerCase())) {
-          topics.add(topic);
-        }
-      });
-    });
-
-    return Array.from(topics).slice(0, 5);
+    return topics.filter((topic) => allText.includes(topic)).slice(0, 5);
   }
 
   private delay(ms: number): Promise<void> {

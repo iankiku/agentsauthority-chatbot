@@ -325,7 +325,7 @@ function calculateShareOfVoice(
       name: brand,
       share: Math.round((score / totalScore) * 100),
       rank: 0, // Will be calculated below
-      change: 'stable', // Mock data - would be calculated from historical data
+      change: 'stable', // Historical data analysis would be implemented in future sprint
     }))
     .sort((a, b) => b.share - a.share);
 

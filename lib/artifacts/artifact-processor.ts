@@ -2,6 +2,10 @@ import type { BrandMonitorResult } from '../ai/tools/brand-monitor-tool';
 import type { CompetitiveAnalysisResult } from '../ai/tools/competitive-intelligence-tool';
 import type { ContentOptimizationResult } from '../ai/tools/content-optimization-tool';
 import type { VisibilityAnalysisResult } from '../ai/tools/types';
+import {
+  ArtifactCategorizer,
+  type CategorizedArtifact,
+} from './categorization/artifact-categorizer';
 
 export interface ConversationContext {
   userId: string;
@@ -38,10 +42,15 @@ export class ArtifactProcessor {
     context: ConversationContext,
   ): Promise<CategorizedArtifact> {
     // Create base artifact
-    const baseArtifact = await this.createBaseArtifact(toolName, result, context);
+    const baseArtifact = await this.createBaseArtifact(
+      toolName,
+      result,
+      context,
+    );
 
     // Categorize artifact
-    const categorizedArtifact = await this.categorizer.categorizeArtifact(baseArtifact);
+    const categorizedArtifact =
+      await this.categorizer.categorizeArtifact(baseArtifact);
 
     // Save categorized artifact
     await this.saveCategorizedArtifact(categorizedArtifact);
@@ -209,13 +218,20 @@ export class ArtifactProcessor {
     // TODO: Implement database persistence
   }
 
-  private async saveCategorizedArtifact(artifact: CategorizedArtifact): Promise<void> {
-    console.log('Saving categorized artifact:', artifact.id, artifact.type, artifact.category);
+  private async saveCategorizedArtifact(
+    artifact: CategorizedArtifact,
+  ): Promise<void> {
+    console.log(
+      'Saving categorized artifact:',
+      artifact.id,
+      artifact.type,
+      artifact.category,
+    );
     console.log('Tags:', artifact.tags);
     console.log('Priority:', artifact.priority);
     console.log('Confidence:', artifact.categorizationConfidence);
     console.log('Related artifacts:', artifact.relatedArtifacts.length);
-    
+
     // In a real implementation, this would save to database with categorization data
     // TODO: Implement database persistence with categorization fields
   }

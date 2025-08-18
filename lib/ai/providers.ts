@@ -21,20 +21,21 @@ export const myProvider = isTestEnvironment
         'chat-model-reasoning': reasoningModel,
         'title-model': titleModel,
         'artifact-model': artifactModel,
-        'gpt-4': chatModel, // Use mock for testing
-        claude: chatModel, // Use mock for testing
-        gemini: chatModel, // Use mock for testing
+        // Use real models even in test environment for integration testing
+        'gpt-4': openai('gpt-4o'),
+        claude: anthropic('claude-3-5-sonnet-20241022'),
+        gemini: google('gemini-1.5-flash'),
       },
     })
   : customProvider({
       languageModels: {
-        'chat-model': openai('gpt-4o'),
+        'chat-model': openai('gpt-4o-mini'), // Changed to cheaper model
         'chat-model-reasoning': wrapLanguageModel({
           model: openai('gpt-4o-mini'),
           middleware: extractReasoningMiddleware({ tagName: 'think' }),
         }),
         'title-model': openai('gpt-4o-mini'),
-        'artifact-model': openai('gpt-4o'),
+        'artifact-model': openai('gpt-4o-mini'), // Changed to cheaper model
         'gpt-4': openai('gpt-4o'),
         claude: anthropic('claude-3-5-sonnet-20241022'),
         gemini: google('gemini-1.5-flash'),

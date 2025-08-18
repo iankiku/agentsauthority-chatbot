@@ -1,8 +1,11 @@
-import { ArtifactCategorizer, type CategorizedArtifact } from '../artifacts/categorization/artifact-categorizer';
-import { CategoryMapper } from '../artifacts/categorization/category-mapper';
-import { TagExtractor } from '../artifacts/categorization/tag-extractor';
-import { RelationshipDetector } from '../artifacts/categorization/relationship-detector';
 import type { Artifact } from '../artifacts/artifact-processor';
+import {
+  ArtifactCategorizer,
+  type CategorizedArtifact,
+} from '../artifacts/categorization/artifact-categorizer';
+import { CategoryMapper } from '../artifacts/categorization/category-mapper';
+import { RelationshipDetector } from '../artifacts/categorization/relationship-detector';
+import { TagExtractor } from '../artifacts/categorization/tag-extractor';
 
 describe('ArtifactCategorizer', () => {
   let categorizer: ArtifactCategorizer;
@@ -90,15 +93,38 @@ describe('ArtifactCategorizer', () => {
         contentType: 'blog',
         industry: 'technology',
         platformAnalysis: {
-          chatgpt: { score: 75, strengths: [], weaknesses: [], recommendations: [] },
-          claude: { score: 80, strengths: [], weaknesses: [], recommendations: [] },
-          gemini: { score: 70, strengths: [], weaknesses: [], recommendations: [] },
+          chatgpt: {
+            score: 75,
+            strengths: [],
+            weaknesses: [],
+            recommendations: [],
+          },
+          claude: {
+            score: 80,
+            strengths: [],
+            weaknesses: [],
+            recommendations: [],
+          },
+          gemini: {
+            score: 70,
+            strengths: [],
+            weaknesses: [],
+            recommendations: [],
+          },
         },
         overallOptimization: {
           averageScore: 75,
           priorityImprovements: [],
-          contentStructure: { suggestedFormat: 'Blog Post', recommendedSections: [], lengthRecommendation: '800-1200 words' },
-          keywordIntegration: { currentDensity: 1.2, recommendedDensity: 1.5, placementSuggestions: [] },
+          contentStructure: {
+            suggestedFormat: 'Blog Post',
+            recommendedSections: [],
+            lengthRecommendation: '800-1200 words',
+          },
+          keywordIntegration: {
+            currentDensity: 1.2,
+            recommendedDensity: 1.5,
+            placementSuggestions: [],
+          },
         },
       },
       metadata: {
@@ -167,7 +193,11 @@ describe('ArtifactCategorizer', () => {
         id: 'test-6',
         type: 'brand-monitor',
         title: 'Brand Monitor - Amazon',
-        content: { brandName: 'Amazon', mentionCount: 150, credibilityScore: 85 },
+        content: {
+          brandName: 'Amazon',
+          mentionCount: 150,
+          credibilityScore: 85,
+        },
         metadata: {
           brandName: 'Amazon',
           timestamp: new Date().toISOString(),
@@ -180,7 +210,8 @@ describe('ArtifactCategorizer', () => {
       },
     ];
 
-    const categorized = await categorizer.categorizeMultipleArtifacts(artifacts);
+    const categorized =
+      await categorizer.categorizeMultipleArtifacts(artifacts);
 
     expect(categorized).toHaveLength(2);
     expect(categorized[0].category).toBe('brand-visibility');
@@ -251,7 +282,10 @@ describe('CategoryMapper', () => {
   test('should map artifact types to categories correctly', () => {
     const testCases = [
       { type: 'visibility-matrix', expected: 'brand-visibility' },
-      { type: 'competitive-intelligence', expected: 'competitive-intelligence' },
+      {
+        type: 'competitive-intelligence',
+        expected: 'competitive-intelligence',
+      },
       { type: 'content-optimization', expected: 'content-strategy' },
       { type: 'brand-monitor-report', expected: 'brand-monitoring' },
       { type: 'unknown-type', expected: 'general' },
@@ -278,8 +312,12 @@ describe('CategoryMapper', () => {
   });
 
   test('should provide category descriptions', () => {
-    expect(mapper.getCategoryDescription('brand-visibility')).toBe('Brand visibility analysis across AI platforms');
-    expect(mapper.getCategoryDescription('competitive-intelligence')).toBe('Competitive analysis and market positioning');
+    expect(mapper.getCategoryDescription('brand-visibility')).toBe(
+      'Brand visibility analysis across AI platforms',
+    );
+    expect(mapper.getCategoryDescription('competitive-intelligence')).toBe(
+      'Competitive analysis and market positioning',
+    );
     expect(mapper.getCategoryDescription('unknown')).toBe('Unknown category');
   });
 
@@ -339,7 +377,8 @@ describe('TagExtractor', () => {
   });
 
   test('should normalize tags correctly', async () => {
-    const text = 'This is a test with #hashtags and @mentions and AI/ML content from 2024';
+    const text =
+      'This is a test with #hashtags and @mentions and AI/ML content from 2024';
     const tags = await extractor.extractTagsFromText(text);
 
     expect(tags).toContain('hashtags');
@@ -416,7 +455,10 @@ describe('RelationshipDetector', () => {
       },
     };
 
-    const relatedArtifacts = await detector.findRelatedArtifacts(artifact, 'brand-visibility');
+    const relatedArtifacts = await detector.findRelatedArtifacts(
+      artifact,
+      'brand-visibility',
+    );
 
     expect(relatedArtifacts).toBeInstanceOf(Array);
     // In mock implementation, this will be empty, but the method should not throw
@@ -456,8 +498,14 @@ describe('RelationshipDetector', () => {
     };
 
     // This would test the private method through the public interface
-    const relatedArtifacts1 = await detector.findRelatedArtifacts(artifact1, 'brand-visibility');
-    const relatedArtifacts2 = await detector.findRelatedArtifacts(artifact2, 'brand-visibility');
+    const relatedArtifacts1 = await detector.findRelatedArtifacts(
+      artifact1,
+      'brand-visibility',
+    );
+    const relatedArtifacts2 = await detector.findRelatedArtifacts(
+      artifact2,
+      'brand-visibility',
+    );
 
     expect(relatedArtifacts1).toBeInstanceOf(Array);
     expect(relatedArtifacts2).toBeInstanceOf(Array);
