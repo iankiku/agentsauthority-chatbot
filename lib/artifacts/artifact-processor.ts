@@ -1,4 +1,5 @@
 import type { VisibilityAnalysisResult } from '../ai/tools/types';
+import type { BrandMonitorResult } from '../ai/tools/brand-monitor-tool';
 
 export interface ConversationContext {
   userId: string;
@@ -31,6 +32,9 @@ export class ArtifactProcessor {
     switch (toolName) {
       case 'visibilityAcrossModels':
         return this.createVisibilityArtifact(result, context);
+      
+      case 'brandMonitor':
+        return this.createBrandMonitorArtifact(result, context);
 
       default:
         return this.createGenericArtifact(result, context);
@@ -58,6 +62,30 @@ export class ArtifactProcessor {
     };
 
     // In a real implementation, this would persist to database
+    await this.saveArtifact(artifact);
+    return artifact;
+  }
+
+  private async createBrandMonitorArtifact(
+    result: BrandMonitorResult,
+    context: ConversationContext,
+  ): Promise<Artifact> {
+    const artifact: Artifact = {
+      id: this.generateId(),
+      type: 'brand-monitor',
+      title: `Brand Monitoring Report - ${result.brandName}`,
+      content: result,
+      metadata: {
+        brandName: result.brandName,
+        timestamp: result.timestamp,
+        category: 'brand-monitoring',
+        tags: ['brand-monitoring', 'web-scraping', 'sentiment-analysis', 'geo'],
+        generatedBy: 'brandMonitor',
+        userId: context.userId,
+        conversationId: context.conversationId,
+      },
+    };
+
     await this.saveArtifact(artifact);
     return artifact;
   }

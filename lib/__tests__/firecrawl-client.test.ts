@@ -11,11 +11,14 @@ describe('FirecrawlClient', () => {
 
   describe('crawlBrandMentions', () => {
     test('should crawl multiple sources successfully', async () => {
-      const results = await client.crawlBrandMentions('Tesla', ['reddit', 'hackernews']);
+      const results = await client.crawlBrandMentions('Tesla', [
+        'reddit',
+        'hackernews',
+      ]);
 
       expect(results).toBeInstanceOf(Array);
       expect(results.length).toBeGreaterThan(0);
-      
+
       results.forEach((result) => {
         expect(result.source).toMatch(/reddit|hackernews/);
         expect(result.mentions.length).toBeGreaterThan(0);
@@ -34,7 +37,11 @@ describe('FirecrawlClient', () => {
 
     test('should respect crawl options', async () => {
       const options = { limit: 5, timeframe: 'day' as const };
-      const results = await client.crawlBrandMentions('Microsoft', ['news'], options);
+      const results = await client.crawlBrandMentions(
+        'Microsoft',
+        ['news'],
+        options,
+      );
 
       expect(results).toBeInstanceOf(Array);
       // Mock data should respect the limit
@@ -42,7 +49,9 @@ describe('FirecrawlClient', () => {
     });
 
     test('should handle unknown brands gracefully', async () => {
-      const results = await client.crawlBrandMentions('UnknownBrandXYZ', ['reddit']);
+      const results = await client.crawlBrandMentions('UnknownBrandXYZ', [
+        'reddit',
+      ]);
 
       expect(results).toBeInstanceOf(Array);
       // Should still return some results (even if empty)
@@ -63,11 +72,17 @@ describe('FirecrawlClient', () => {
       expect(response.brandName).toBe('Tesla');
       expect(response.results).toBeInstanceOf(Array);
       expect(response.summary.totalMentions).toBeGreaterThan(0);
-      expect(response.summary.averageSentiment).toMatch(/positive|neutral|negative/);
+      expect(response.summary.averageSentiment).toMatch(
+        /positive|neutral|negative/,
+      );
       expect(response.summary.topSources).toBeInstanceOf(Array);
       expect(response.summary.trendingTopics).toBeInstanceOf(Array);
       expect(response.summary.executionTime).toBeGreaterThan(0);
-      expect(response.metadata.sourcesQueried).toEqual(['reddit', 'hackernews', 'twitter']);
+      expect(response.metadata.sourcesQueried).toEqual([
+        'reddit',
+        'hackernews',
+        'twitter',
+      ]);
       expect(response.metadata.timeframe).toBe('week');
       expect(response.metadata.timestamp).toBeDefined();
     });
@@ -91,7 +106,7 @@ describe('FirecrawlClient', () => {
   describe('source configuration', () => {
     test('should generate correct Reddit configuration', async () => {
       const results = await client.crawlBrandMentions('Tesla', ['reddit']);
-      
+
       expect(results.length).toBeGreaterThan(0);
       results.forEach((result) => {
         expect(result.source).toBe('reddit');
@@ -101,7 +116,7 @@ describe('FirecrawlClient', () => {
 
     test('should generate correct HackerNews configuration', async () => {
       const results = await client.crawlBrandMentions('Apple', ['hackernews']);
-      
+
       expect(results.length).toBeGreaterThan(0);
       results.forEach((result) => {
         expect(result.source).toBe('hackernews');
@@ -111,7 +126,7 @@ describe('FirecrawlClient', () => {
 
     test('should generate correct Twitter configuration', async () => {
       const results = await client.crawlBrandMentions('Microsoft', ['twitter']);
-      
+
       expect(results.length).toBeGreaterThan(0);
       results.forEach((result) => {
         expect(result.source).toBe('twitter');
@@ -143,7 +158,8 @@ describe('MentionDetector', () => {
     });
 
     test('should find fuzzy brand variations', () => {
-      const content = 'TESLA is great, tesla cars are amazing, and Tesla Motors is innovative.';
+      const content =
+        'TESLA is great, tesla cars are amazing, and Tesla Motors is innovative.';
       const mentions = detector.detectMentions(content, 'Tesla');
 
       expect(mentions.length).toBeGreaterThan(0);
@@ -161,7 +177,8 @@ describe('MentionDetector', () => {
     });
 
     test('should extract context around mentions', () => {
-      const content = 'This is a long sentence about Tesla being an innovative company that is changing the world.';
+      const content =
+        'This is a long sentence about Tesla being an innovative company that is changing the world.';
       const mentions = detector.detectMentions(content, 'Tesla');
 
       expect(mentions.length).toBe(1);
@@ -199,7 +216,8 @@ describe('SentimentAnalyzer', () => {
 
   describe('analyzeSentiment', () => {
     test('should identify positive sentiment', () => {
-      const content = 'Tesla is excellent and innovative. Their cars are amazing and the best in the market.';
+      const content =
+        'Tesla is excellent and innovative. Their cars are amazing and the best in the market.';
       const sentiment = analyzer.analyzeSentiment(content, 'Tesla');
 
       expect(sentiment.overall).toBe('positive');
@@ -209,7 +227,8 @@ describe('SentimentAnalyzer', () => {
     });
 
     test('should identify negative sentiment', () => {
-      const content = 'Tesla is terrible and failing. Their products are awful and broken.';
+      const content =
+        'Tesla is terrible and failing. Their products are awful and broken.';
       const sentiment = analyzer.analyzeSentiment(content, 'Tesla');
 
       expect(sentiment.overall).toBe('negative');
@@ -229,7 +248,8 @@ describe('SentimentAnalyzer', () => {
     });
 
     test('should extract brand-specific sentences', () => {
-      const content = 'This is about Tesla. Tesla is great. This is not about Tesla. Tesla is amazing.';
+      const content =
+        'This is about Tesla. Tesla is great. This is not about Tesla. Tesla is amazing.';
       const sentiment = analyzer.analyzeSentiment(content, 'Tesla');
 
       expect(sentiment.neutralContext.length).toBeGreaterThan(0);
@@ -239,7 +259,8 @@ describe('SentimentAnalyzer', () => {
     });
 
     test('should handle mixed sentiment', () => {
-      const content = 'Tesla is excellent but also expensive. Their quality is great but the price is terrible.';
+      const content =
+        'Tesla is excellent but also expensive. Their quality is great but the price is terrible.';
       const sentiment = analyzer.analyzeSentiment(content, 'Tesla');
 
       expect(sentiment.overall).toMatch(/positive|negative|neutral/);
@@ -248,7 +269,8 @@ describe('SentimentAnalyzer', () => {
     });
 
     test('should provide confidence scores', () => {
-      const content = 'Tesla is absolutely excellent and fantastic and amazing and incredible and wonderful.';
+      const content =
+        'Tesla is absolutely excellent and fantastic and amazing and incredible and wonderful.';
       const sentiment = analyzer.analyzeSentiment(content, 'Tesla');
 
       expect(sentiment.overall).toBe('positive');
@@ -294,7 +316,9 @@ describe('Integration Tests', () => {
 
     // Verify summary statistics
     expect(response.summary.totalMentions).toBeGreaterThan(0);
-    expect(response.summary.averageSentiment).toMatch(/positive|neutral|negative/);
+    expect(response.summary.averageSentiment).toMatch(
+      /positive|neutral|negative/,
+    );
     expect(response.summary.topSources).toBeInstanceOf(Array);
     expect(response.summary.trendingTopics).toBeInstanceOf(Array);
     expect(response.summary.executionTime).toBeGreaterThan(0);

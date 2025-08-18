@@ -20,7 +20,9 @@ export class SentimentAnalyzer {
   }
 
   private extractBrandSentences(content: string, brandName: string): string[] {
-    const sentences = content.split(/[.!?]+/).filter((s) => s.trim().length > 0);
+    const sentences = content
+      .split(/[.!?]+/)
+      .filter((s) => s.trim().length > 0);
     const normalizedBrand = brandName.toLowerCase();
 
     return sentences.filter((sentence) =>
@@ -100,8 +102,12 @@ export class SentimentAnalyzer {
       text.includes(word),
     ).length;
 
-    const positiveWords = positiveKeywords.filter((word) => text.includes(word));
-    const negativeWords = negativeKeywords.filter((word) => text.includes(word));
+    const positiveWords = positiveKeywords.filter((word) =>
+      text.includes(word),
+    );
+    const negativeWords = negativeKeywords.filter((word) =>
+      text.includes(word),
+    );
 
     if (positiveCount > negativeCount && positiveCount > 0) {
       return {
@@ -135,22 +141,64 @@ export class SentimentAnalyzer {
 
   private containsSentimentKeywords(sentence: string): boolean {
     const positiveKeywords = [
-      'excellent', 'great', 'amazing', 'outstanding', 'innovative', 'leading',
-      'best', 'superior', 'impressive', 'successful', 'love', 'fantastic',
-      'brilliant', 'revolutionary', 'premium', 'quality', 'reliable',
-      'trusted', 'popular', 'growth', 'improved', 'better', 'awesome',
-      'incredible', 'wonderful',
+      'excellent',
+      'great',
+      'amazing',
+      'outstanding',
+      'innovative',
+      'leading',
+      'best',
+      'superior',
+      'impressive',
+      'successful',
+      'love',
+      'fantastic',
+      'brilliant',
+      'revolutionary',
+      'premium',
+      'quality',
+      'reliable',
+      'trusted',
+      'popular',
+      'growth',
+      'improved',
+      'better',
+      'awesome',
+      'incredible',
+      'wonderful',
     ];
 
     const negativeKeywords = [
-      'terrible', 'awful', 'poor', 'disappointing', 'failed', 'worst',
-      'problematic', 'issues', 'broken', 'inadequate', 'hate', 'horrible',
-      'disaster', 'scandal', 'controversy', 'lawsuit', 'recall', 'defective',
-      'expensive', 'overpriced', 'cheap', 'low quality', 'unreliable', 'failing',
+      'terrible',
+      'awful',
+      'poor',
+      'disappointing',
+      'failed',
+      'worst',
+      'problematic',
+      'issues',
+      'broken',
+      'inadequate',
+      'hate',
+      'horrible',
+      'disaster',
+      'scandal',
+      'controversy',
+      'lawsuit',
+      'recall',
+      'defective',
+      'expensive',
+      'overpriced',
+      'cheap',
+      'low quality',
+      'unreliable',
+      'failing',
     ];
 
     const text = sentence.toLowerCase();
-    return positiveKeywords.some((word) => text.includes(word)) ||
-           negativeKeywords.some((word) => text.includes(word));
+    return (
+      positiveKeywords.some((word) => text.includes(word)) ||
+      negativeKeywords.some((word) => text.includes(word))
+    );
   }
 }
