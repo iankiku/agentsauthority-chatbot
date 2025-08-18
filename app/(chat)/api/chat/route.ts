@@ -10,8 +10,8 @@ import { createDocument } from '@/lib/ai/tools/create-document';
 import { getWeather } from '@/lib/ai/tools/get-weather';
 import { requestSuggestions } from '@/lib/ai/tools/request-suggestions';
 import { updateDocument } from '@/lib/ai/tools/update-document';
-import { visibilityExplorerAgent } from '@/lib/ai/tools/visibility-explorer-agent';
 import { visibilityAcrossModelsTool } from '@/lib/ai/tools/visibility-across-models-tool';
+import { visibilityExplorerAgent } from '@/lib/ai/tools/visibility-explorer-agent';
 import { ArtifactProcessor } from '@/lib/artifacts/artifact-processor';
 import { isProductionEnvironment } from '@/lib/constants';
 import {
@@ -241,11 +241,15 @@ export async function POST(request: Request) {
           onToolResult: async ({ toolCall, result }) => {
             // Process tool result into artifact
             if (toolCall.toolName === 'visibilityAcrossModels') {
-              await artifactProcessor.processToolResult(toolCall.toolName, result, {
-                userId: session.user.id,
-                conversationId: id,
-                timestamp: new Date().toISOString(),
-              });
+              await artifactProcessor.processToolResult(
+                toolCall.toolName,
+                result,
+                {
+                  userId: session.user.id,
+                  conversationId: id,
+                  timestamp: new Date().toISOString(),
+                },
+              );
             }
           },
         });

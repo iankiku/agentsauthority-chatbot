@@ -1,5 +1,5 @@
-import { ArtifactProcessor } from '../artifacts/artifact-processor';
 import { visibilityAcrossModelsTool } from '../ai/tools/visibility-across-models-tool';
+import { ArtifactProcessor } from '../artifacts/artifact-processor';
 
 // Mock the MultiModelClient
 jest.mock('../data-sources/multi-model-client', () => ({
@@ -48,7 +48,7 @@ describe('Chat Integration with Visibility Tool', () => {
 
   test('artifact is generated and processed correctly', async () => {
     const artifactProcessor = new ArtifactProcessor();
-    
+
     const mockToolResult = {
       brandName: 'Apple',
       timestamp: '2024-01-15T10:30:00Z',
@@ -109,7 +109,9 @@ describe('Chat Integration with Visibility Tool', () => {
     expect(result.modelResults).toHaveLength(0);
     expect(result.overallVisibility).toBe(0);
     expect(result.insights[0]).toContain('Analysis failed: API Error');
-    expect(result.recommendations).toContain('Please check your brand name and try again');
+    expect(result.recommendations).toContain(
+      'Please check your brand name and try again',
+    );
   });
 
   test('natural language queries trigger tool correctly', async () => {
@@ -125,14 +127,14 @@ describe('Chat Integration with Visibility Tool', () => {
       // In a real implementation, this would test the natural language processing
       // For now, we'll just verify the tool can handle the brand names
       const brandNames = ['Tesla', 'Apple', 'Nike', 'Microsoft'];
-      const foundBrand = brandNames.find(brand => query.includes(brand));
-      
+      const foundBrand = brandNames.find((brand) => query.includes(brand));
+
       if (foundBrand) {
         const result = await visibilityAcrossModelsTool.execute({
           brandName: foundBrand,
           timeframe: 'week',
         });
-        
+
         expect(result.brandName).toBe(foundBrand);
         expect(result.timeframe).toBe('week');
       }

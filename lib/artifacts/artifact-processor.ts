@@ -92,7 +92,7 @@ export class ArtifactProcessor {
   private async saveArtifact(artifact: Artifact): Promise<void> {
     // In a real implementation, this would save to database
     console.log('Saving artifact:', artifact.id, artifact.type);
-    
+
     // For now, just log the artifact creation
     // TODO: Implement database persistence
   }
