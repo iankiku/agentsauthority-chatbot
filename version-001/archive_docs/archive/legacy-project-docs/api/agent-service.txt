@@ -1,0 +1,89 @@
+// lib/ai/agent-service.ts
+import { MastraClient } from "@mastra/client-js";
+
+const MASTRA_API_BASE_URL =
+	process.env.NEXT_PUBLIC_MASTRA_API_URL ||
+	process.env.MASTRA_API_URL ||
+	"http://localhost:4111/api";
+
+const mastraClient = new MastraClient({
+	baseUrl: MASTRA_API_BASE_URL,
+	retries: 3,
+	backoffMs: 300,
+});
+
+export type AgentInvokeOptions = {
+	prompt: string;
+	streaming?: boolean;
+	agentId?: string;
+	threadId?: string;
+	resourceId?: string;
+};
+
+export class AgentService {
+	private static baseUrl() {
+		return MASTRA_API_BASE_URL;
+	}
+
+	private static agentUrl(agentId: string) {
+		const url = `${this.baseUrl()}/agents/${agentId}`;
+		console.log("agentUrl", url);
+		return url;
+	}
+
+	async getAgent(agentId = "assistantAgent") {
+		console.log(`Attempting to get agent: ${agentId}`);
+		try {
+			const agent = await mastraClient.getAgent(agentId);
+			console.log(`Successfully fetched agent: ${agentId}`);
+			return agent;
+		} catch (err) {
+			console.error(`Error fetching agent ${agentId}:`, JSON.stringify(err, null, 2));
+			throw err;
+		}
+	}
+
+	async invokeAgents(opts: AgentInvokeOptions) {
+		const {
+			prompt,
+			streaming = true,
+			agentId = "assistantAgent",
+			threadId,
+			resourceId,
+		} = opts;
+		
+		console.log(`Invoking agent "${agentId}" with streaming: ${streaming}`);
+
+		const agent = await this.getAgent(agentId);
+
+		const messages = [{ role: "user" as const, content: prompt }];
+		const options: any = {};
+		if (threadId && resourceId)
+			((options.thread = threadId), (options.resource = resourceId));
+
+		try {
+			console.log("Sending request to agent...");
+			console.log("Attempting to stream from URL:", agent.streamUrl);
+			const result = streaming
+				? await agent.stream({ messages, ...options })
+				: await agent.generate({ messages, ...options });
+			console.log("Received response from agent.");
+			return result;
+		} catch (err) {
+			console.error("Error invoking agent:", JSON.stringify(err, null, 2));
+			throw err;
+		}
+	}
+
+	async generateText(opts: Omit<AgentInvokeOptions, "streaming">) {
+		const resp = await this.invokeAgents({ ...opts, streaming: false });
+		return resp.text;
+	}
+
+	async getTextStream(opts: Omit<AgentInvokeOptions, "streaming">) {
+		const resp = await this.invokeAgents({ ...opts, streaming: true });
+		return resp.textStream;
+	}
+}
+
+export const agentService = new AgentService();

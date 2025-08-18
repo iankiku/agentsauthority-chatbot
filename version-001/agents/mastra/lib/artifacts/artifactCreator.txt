@@ -1,0 +1,53 @@
+import { z } from "zod";
+import {
+	AgentArtifactResponseSchema,
+	ArtifactType,
+	DashboardLayoutSchema,
+	DataTableSchema,
+	GeoScoreCardSchema,
+	LineChartSchema,
+	RecommendationsCardSchema,
+} from "../schemas/artifactSchemas";
+
+const ARTIFACT_SCHEMAS: Record<ArtifactType, z.ZodObject<any>> = {
+	"data-table": DataTableSchema,
+	"line-chart": LineChartSchema,
+	"geo-score-card": GeoScoreCardSchema,
+	"recommendations-card": RecommendationsCardSchema,
+	"dashboard-layout": DashboardLayoutSchema,
+};
+
+/**
+ * Creates and validates a UI artifact response payload.
+ * This utility ensures that agents generate well-formed, type-safe data
+ * according to the defined Zod schemas.
+ *
+ * @param type The type of the artifact (e.g., "data-table", "line-chart").
+ * @param data The specific data payload for the artifact.
+ * @param metadata Optional additional metadata.
+ * @returns A validated AgentArtifactResponse payload.
+ * @throws Will throw a ZodError if the data does not conform to the schema.
+ */
+export function createArtifactResponse<T extends ArtifactType>(
+	type: T,
+	data: z.infer<(typeof ARTIFACT_SCHEMAS)[T]["shape"]["data"]>,
+	metadata?: any
+) {
+	const schema = ARTIFACT_SCHEMAS[type];
+	if (!schema) {
+		throw new Error(`Unknown artifact type: ${type}`);
+	}
+
+	// Validate only the data payload using the 'data' shape of the specific schema
+	const validatedData = schema.shape.data.parse(data);
+
+	return AgentArtifactResponseSchema.parse({
+		type: type,
+		data: validatedData,
+		metadata: metadata || {},
+	});
+}
+
+export function isArtifactType(type: string): type is ArtifactType {
+	return type in ARTIFACT_SCHEMAS;
+}
