@@ -10,11 +10,18 @@ jest.mock('../data-sources/firecrawl-client', () => ({
           source: 'reddit',
           url: 'https://reddit.com/r/technology/comments/123/tesla-discussion',
           title: 'Tesla is revolutionizing the industry',
-          content: 'Tesla is doing amazing things. Their latest product is incredible.',
+          content:
+            'Tesla is doing amazing things. Their latest product is incredible.',
           mentions: [
             { text: 'Tesla', position: 0, type: 'exact', confidence: 1.0 },
           ],
-          sentiment: { overall: 'positive', confidence: 0.8, positiveKeywords: ['amazing'], negativeKeywords: [], neutralContext: [] },
+          sentiment: {
+            overall: 'positive',
+            confidence: 0.8,
+            positiveKeywords: ['amazing'],
+            negativeKeywords: [],
+            neutralContext: [],
+          },
           publishedAt: '2024-01-15T10:30:00Z',
           author: 'tech_enthusiast',
           engagement: { upvotes: 150, comments: 23, shares: 5 },
@@ -24,11 +31,18 @@ jest.mock('../data-sources/firecrawl-client', () => ({
           source: 'hackernews',
           url: 'https://news.ycombinator.com/item?id=123456',
           title: 'Tesla launches new AI feature',
-          content: 'Tesla just announced their latest AI integration. This could be a game-changer.',
+          content:
+            'Tesla just announced their latest AI integration. This could be a game-changer.',
           mentions: [
             { text: 'Tesla', position: 0, type: 'exact', confidence: 1.0 },
           ],
-          sentiment: { overall: 'positive', confidence: 0.7, positiveKeywords: ['game-changer'], negativeKeywords: [], neutralContext: [] },
+          sentiment: {
+            overall: 'positive',
+            confidence: 0.7,
+            positiveKeywords: ['game-changer'],
+            negativeKeywords: [],
+            neutralContext: [],
+          },
           publishedAt: '2024-01-15T08:00:00Z',
           author: 'hn_user',
           engagement: { upvotes: 234, comments: 45, shares: 12 },
@@ -95,16 +109,26 @@ describe('brandMonitorTool', () => {
     FirecrawlClient.mockImplementationOnce(() => ({
       monitorBrand: jest.fn().mockResolvedValue({
         brandName: 'Tesla',
-        results: Array(60).fill(null).map(() => ({
-          source: 'reddit',
-          url: 'https://reddit.com/test',
-          title: 'Test post',
-          content: 'Tesla is great',
-          mentions: [{ text: 'Tesla', position: 0, type: 'exact', confidence: 1.0 }],
-          sentiment: { overall: 'positive', confidence: 0.8, positiveKeywords: ['great'], negativeKeywords: [], neutralContext: [] },
-          publishedAt: '2024-01-15T10:30:00Z',
-          credibilityScore: 0.8,
-        })),
+        results: Array(60)
+          .fill(null)
+          .map(() => ({
+            source: 'reddit',
+            url: 'https://reddit.com/test',
+            title: 'Test post',
+            content: 'Tesla is great',
+            mentions: [
+              { text: 'Tesla', position: 0, type: 'exact', confidence: 1.0 },
+            ],
+            sentiment: {
+              overall: 'positive',
+              confidence: 0.8,
+              positiveKeywords: ['great'],
+              negativeKeywords: [],
+              neutralContext: [],
+            },
+            publishedAt: '2024-01-15T10:30:00Z',
+            credibilityScore: 0.8,
+          })),
         summary: {
           totalMentions: 60,
           averageSentiment: 'positive',
@@ -143,8 +167,16 @@ describe('brandMonitorTool', () => {
             url: 'https://reddit.com/test',
             title: 'Test post',
             content: 'Tesla is terrible and failing',
-            mentions: [{ text: 'Tesla', position: 0, type: 'exact', confidence: 1.0 }],
-            sentiment: { overall: 'negative', confidence: 0.8, positiveKeywords: [], negativeKeywords: ['terrible', 'failing'], neutralContext: [] },
+            mentions: [
+              { text: 'Tesla', position: 0, type: 'exact', confidence: 1.0 },
+            ],
+            sentiment: {
+              overall: 'negative',
+              confidence: 0.8,
+              positiveKeywords: [],
+              negativeKeywords: ['terrible', 'failing'],
+              neutralContext: [],
+            },
             publishedAt: '2024-01-15T10:30:00Z',
             credibilityScore: 0.6,
           },
@@ -171,8 +203,12 @@ describe('brandMonitorTool', () => {
       includeRecommendations: true,
     });
 
-    expect(result.recommendations).toContain('Address negative sentiment through customer service improvements');
-    expect(result.recommendations).toContain('Develop a crisis communication strategy');
+    expect(result.recommendations).toContain(
+      'Address negative sentiment through customer service improvements',
+    );
+    expect(result.recommendations).toContain(
+      'Develop a crisis communication strategy',
+    );
   });
 
   test('should handle low visibility brands', async () => {
@@ -206,7 +242,9 @@ describe('brandMonitorTool', () => {
     });
 
     expect(result.insights).toContain('No brand mentions detected');
-    expect(result.recommendations).toContain('Increase brand visibility through content marketing');
+    expect(result.recommendations).toContain(
+      'Increase brand visibility through content marketing',
+    );
   });
 
   test('should handle API errors gracefully', async () => {
@@ -226,7 +264,9 @@ describe('brandMonitorTool', () => {
     expect(result.summary.totalMentions).toBe(0);
     expect(result.summary.averageSentiment).toBe('neutral');
     expect(result.insights[0]).toContain('Brand monitoring failed: API Error');
-    expect(result.recommendations).toContain('Please check your brand name and try again');
+    expect(result.recommendations).toContain(
+      'Please check your brand name and try again',
+    );
   });
 
   test('should respect includeInsights and includeRecommendations flags', async () => {
@@ -251,7 +291,7 @@ describe('brandMonitorTool', () => {
 
     expect(result.summary.credibilityScore).toBeGreaterThan(0);
     expect(result.summary.credibilityScore).toBeLessThanOrEqual(1);
-    
+
     result.detailedResults.forEach((detail) => {
       expect(detail.credibilityScore).toBeGreaterThan(0);
       expect(detail.credibilityScore).toBeLessThanOrEqual(1);
@@ -279,7 +319,7 @@ describe('brandMonitorTool', () => {
 
   test('should handle different timeframes correctly', async () => {
     const timeframes = ['day', 'week', 'month'] as const;
-    
+
     for (const timeframe of timeframes) {
       const result = await brandMonitorTool.execute({
         brandName: 'Tesla',

@@ -34,13 +34,26 @@ export interface BrandMonitorResult {
 }
 
 export const brandMonitorTool = tool({
-  description: 'Monitor brand mentions and sentiment across Reddit, HackerNews, Twitter, and news sources',
+  description:
+    'Monitor brand mentions and sentiment across Reddit, HackerNews, Twitter, and news sources',
   inputSchema: z.object({
     brandName: z.string().describe('The brand name to monitor'),
-    sources: z.array(z.enum(['reddit', 'hackernews', 'twitter', 'news'])).optional().describe('Sources to monitor (default: all)'),
-    timeframe: z.enum(['day', 'week', 'month']).default('week').describe('Timeframe for monitoring'),
-    includeInsights: z.boolean().default(true).describe('Include AI-generated insights'),
-    includeRecommendations: z.boolean().default(true).describe('Include actionable recommendations'),
+    sources: z
+      .array(z.enum(['reddit', 'hackernews', 'twitter', 'news']))
+      .optional()
+      .describe('Sources to monitor (default: all)'),
+    timeframe: z
+      .enum(['day', 'week', 'month'])
+      .default('week')
+      .describe('Timeframe for monitoring'),
+    includeInsights: z
+      .boolean()
+      .default(true)
+      .describe('Include AI-generated insights'),
+    includeRecommendations: z
+      .boolean()
+      .default(true)
+      .describe('Include actionable recommendations'),
   }),
   execute: async ({
     brandName,
@@ -63,9 +76,15 @@ export const brandMonitorTool = tool({
       });
 
       // Calculate additional metrics
-      const credibilityScore = calculateOverallCredibility(monitoringResponse.results);
-      const insights = includeInsights ? generateInsights(monitoringResponse, brandName) : [];
-      const recommendations = includeRecommendations ? generateRecommendations(monitoringResponse, brandName) : [];
+      const credibilityScore = calculateOverallCredibility(
+        monitoringResponse.results,
+      );
+      const insights = includeInsights
+        ? generateInsights(monitoringResponse, brandName)
+        : [];
+      const recommendations = includeRecommendations
+        ? generateRecommendations(monitoringResponse, brandName)
+        : [];
 
       // Build detailed results
       const detailedResults = monitoringResponse.results.map((result) => ({
@@ -108,7 +127,8 @@ export const brandMonitorTool = tool({
     } catch (error) {
       // Handle errors gracefully
       const executionTime = Date.now() - startTime;
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
 
       // Return a partial result with error information
       const errorResult: BrandMonitorResult = {
@@ -125,7 +145,9 @@ export const brandMonitorTool = tool({
         },
         detailedResults: [],
         insights: [`Brand monitoring failed: ${errorMessage}`],
-        recommendations: includeRecommendations ? ['Please check your brand name and try again'] : [],
+        recommendations: includeRecommendations
+          ? ['Please check your brand name and try again']
+          : [],
         metadata: {
           sourcesQueried: sources,
           timeframe,
@@ -144,23 +166,35 @@ export const brandMonitorTool = tool({
 function calculateOverallCredibility(results: any[]): number {
   if (results.length === 0) return 0;
 
-  const totalCredibility = results.reduce((sum, result) => sum + result.credibilityScore, 0);
+  const totalCredibility = results.reduce(
+    (sum, result) => sum + result.credibilityScore,
+    0,
+  );
   return Math.round((totalCredibility / results.length) * 100) / 100;
 }
 
 /**
  * Generate insights based on monitoring results
  */
-function generateInsights(monitoringResponse: BrandMonitoringResponse, brandName: string): string[] {
+function generateInsights(
+  monitoringResponse: BrandMonitoringResponse,
+  brandName: string,
+): string[] {
   const insights: string[] = [];
 
   // Mention volume insights
   if (monitoringResponse.summary.totalMentions > 50) {
-    insights.push(`High brand visibility with ${monitoringResponse.summary.totalMentions} mentions across ${monitoringResponse.summary.topSources.length} sources`);
+    insights.push(
+      `High brand visibility with ${monitoringResponse.summary.totalMentions} mentions across ${monitoringResponse.summary.topSources.length} sources`,
+    );
   } else if (monitoringResponse.summary.totalMentions > 10) {
-    insights.push(`Moderate brand visibility with ${monitoringResponse.summary.totalMentions} mentions detected`);
+    insights.push(
+      `Moderate brand visibility with ${monitoringResponse.summary.totalMentions} mentions detected`,
+    );
   } else if (monitoringResponse.summary.totalMentions > 0) {
-    insights.push(`Low brand visibility with only ${monitoringResponse.summary.totalMentions} mentions found`);
+    insights.push(
+      `Low brand visibility with only ${monitoringResponse.summary.totalMentions} mentions found`,
+    );
   } else {
     insights.push(`No brand mentions detected in the specified timeframe`);
   }
@@ -182,17 +216,27 @@ function generateInsights(monitoringResponse: BrandMonitoringResponse, brandName
 
   // Trending topics insights
   if (monitoringResponse.summary.trendingTopics.length > 0) {
-    insights.push(`Trending topics: ${monitoringResponse.summary.trendingTopics.join(', ')}`);
+    insights.push(
+      `Trending topics: ${monitoringResponse.summary.trendingTopics.join(', ')}`,
+    );
   }
 
   // Performance insights
-  const avgCredibility = monitoringResponse.results.reduce((sum, r) => sum + r.credibilityScore, 0) / monitoringResponse.results.length;
+  const avgCredibility =
+    monitoringResponse.results.reduce((sum, r) => sum + r.credibilityScore, 0) /
+    monitoringResponse.results.length;
   if (avgCredibility > 0.8) {
-    insights.push(`High credibility sources (${Math.round(avgCredibility * 100)}% average score)`);
+    insights.push(
+      `High credibility sources (${Math.round(avgCredibility * 100)}% average score)`,
+    );
   } else if (avgCredibility > 0.6) {
-    insights.push(`Moderate credibility sources (${Math.round(avgCredibility * 100)}% average score)`);
+    insights.push(
+      `Moderate credibility sources (${Math.round(avgCredibility * 100)}% average score)`,
+    );
   } else {
-    insights.push(`Low credibility sources (${Math.round(avgCredibility * 100)}% average score)`);
+    insights.push(
+      `Low credibility sources (${Math.round(avgCredibility * 100)}% average score)`,
+    );
   }
 
   return insights;
@@ -201,22 +245,35 @@ function generateInsights(monitoringResponse: BrandMonitoringResponse, brandName
 /**
  * Generate recommendations based on monitoring results
  */
-function generateRecommendations(monitoringResponse: BrandMonitoringResponse, brandName: string): string[] {
+function generateRecommendations(
+  monitoringResponse: BrandMonitoringResponse,
+  brandName: string,
+): string[] {
   const recommendations: string[] = [];
 
   // Volume-based recommendations
   if (monitoringResponse.summary.totalMentions < 5) {
-    recommendations.push('Increase brand visibility through content marketing and social media engagement');
-    recommendations.push('Consider launching a PR campaign to generate more brand mentions');
+    recommendations.push(
+      'Increase brand visibility through content marketing and social media engagement',
+    );
+    recommendations.push(
+      'Consider launching a PR campaign to generate more brand mentions',
+    );
   }
 
   // Sentiment-based recommendations
   if (monitoringResponse.summary.averageSentiment === 'negative') {
-    recommendations.push('Address negative sentiment through customer service improvements');
+    recommendations.push(
+      'Address negative sentiment through customer service improvements',
+    );
     recommendations.push('Develop a crisis communication strategy');
-    recommendations.push('Monitor and respond to negative mentions proactively');
+    recommendations.push(
+      'Monitor and respond to negative mentions proactively',
+    );
   } else if (monitoringResponse.summary.averageSentiment === 'positive') {
-    recommendations.push('Leverage positive sentiment by amplifying positive mentions');
+    recommendations.push(
+      'Leverage positive sentiment by amplifying positive mentions',
+    );
     recommendations.push('Consider user-generated content campaigns');
   }
 
@@ -232,14 +289,22 @@ function generateRecommendations(monitoringResponse: BrandMonitoringResponse, br
     .map(([source]) => source);
 
   if (lowPerformingSources.length > 0) {
-    recommendations.push(`Focus on improving presence on ${lowPerformingSources.join(', ')} platforms`);
+    recommendations.push(
+      `Focus on improving presence on ${lowPerformingSources.join(', ')} platforms`,
+    );
   }
 
   // Credibility-based recommendations
-  const avgCredibility = monitoringResponse.results.reduce((sum, r) => sum + r.credibilityScore, 0) / monitoringResponse.results.length;
+  const avgCredibility =
+    monitoringResponse.results.reduce((sum, r) => sum + r.credibilityScore, 0) /
+    monitoringResponse.results.length;
   if (avgCredibility < 0.7) {
-    recommendations.push('Focus on high-authority sources to improve credibility scores');
-    recommendations.push('Develop relationships with industry influencers and thought leaders');
+    recommendations.push(
+      'Focus on high-authority sources to improve credibility scores',
+    );
+    recommendations.push(
+      'Develop relationships with industry influencers and thought leaders',
+    );
   }
 
   // General recommendations

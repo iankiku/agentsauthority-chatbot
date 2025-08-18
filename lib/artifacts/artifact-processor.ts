@@ -1,5 +1,5 @@
-import type { VisibilityAnalysisResult } from '../ai/tools/types';
 import type { BrandMonitorResult } from '../ai/tools/brand-monitor-tool';
+import type { VisibilityAnalysisResult } from '../ai/tools/types';
 
 export interface ConversationContext {
   userId: string;
@@ -32,7 +32,7 @@ export class ArtifactProcessor {
     switch (toolName) {
       case 'visibilityAcrossModels':
         return this.createVisibilityArtifact(result, context);
-      
+
       case 'brandMonitor':
         return this.createBrandMonitorArtifact(result, context);
 
