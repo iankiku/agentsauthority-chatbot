@@ -50,7 +50,9 @@ const mockVisibilityData = {
 describe('VisibilityMatrix', () => {
   test('renders brand name prominently', () => {
     render(<VisibilityMatrix data={mockVisibilityData} />);
-    expect(screen.getByText('Brand Visibility Analysis: Tesla')).toBeInTheDocument();
+    expect(
+      screen.getByText('Brand Visibility Analysis: Tesla'),
+    ).toBeInTheDocument();
   });
 
   test('displays overall visibility score', () => {
@@ -70,13 +72,19 @@ describe('VisibilityMatrix', () => {
   test('displays insights section', () => {
     render(<VisibilityMatrix data={mockVisibilityData} />);
     expect(screen.getByText('Key Insights')).toBeInTheDocument();
-    expect(screen.getByText('Strong visibility across AI platforms (77.5/100)')).toBeInTheDocument();
+    expect(
+      screen.getByText('Strong visibility across AI platforms (77.5/100)'),
+    ).toBeInTheDocument();
   });
 
   test('displays recommendations section', () => {
     render(<VisibilityMatrix data={mockVisibilityData} />);
     expect(screen.getByText('Actionable Recommendations')).toBeInTheDocument();
-    expect(screen.getByText('Monitor competitor visibility for market positioning insights')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Monitor competitor visibility for market positioning insights',
+      ),
+    ).toBeInTheDocument();
   });
 
   test('shows timestamp and timeframe', () => {
@@ -86,7 +94,9 @@ describe('VisibilityMatrix', () => {
 
   test('displays metadata information', () => {
     render(<VisibilityMatrix data={mockVisibilityData} />);
-    expect(screen.getByText(/Analysis completed in 2200ms/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Analysis completed in 2200ms/),
+    ).toBeInTheDocument();
     expect(screen.getByText(/2 models analyzed/)).toBeInTheDocument();
   });
 
@@ -98,11 +108,15 @@ describe('VisibilityMatrix', () => {
     };
     render(<VisibilityMatrix data={emptyData} />);
     expect(screen.getByText('No insights available')).toBeInTheDocument();
-    expect(screen.getByText('No recommendations available')).toBeInTheDocument();
+    expect(
+      screen.getByText('No recommendations available'),
+    ).toBeInTheDocument();
   });
 
   test('shows export options when enabled', () => {
-    render(<VisibilityMatrix data={mockVisibilityData} showExportOptions={true} />);
+    render(
+      <VisibilityMatrix data={mockVisibilityData} showExportOptions={true} />,
+    );
     expect(screen.getByText('Export PDF')).toBeInTheDocument();
     expect(screen.getByText('Copy Data')).toBeInTheDocument();
   });

@@ -7,7 +7,12 @@ import { OverallScoreGauge } from './overall-score-gauge';
 import { RecommendationsList } from './recommendations-list';
 import type { VisibilityMatrixProps } from './types';
 
-export function VisibilityMatrix({ data, className, showExportOptions = false, onModelClick }: VisibilityMatrixProps) {
+export function VisibilityMatrix({
+  data,
+  className,
+  showExportOptions = false,
+  onModelClick,
+}: VisibilityMatrixProps) {
   const formatTimestamp = (timestamp: string) => {
     return new Date(timestamp).toLocaleString('en-US', {
       year: 'numeric',
@@ -37,33 +42,43 @@ export function VisibilityMatrix({ data, className, showExportOptions = false, o
               </div>
               <div className="flex items-center gap-1">
                 <TrendingUp className="w-4 h-4" />
-                <span>{data.metadata.modelsQueried.length} models analyzed</span>
+                <span>
+                  {data.metadata.modelsQueried.length} models analyzed
+                </span>
               </div>
             </div>
           </div>
-          
+
           {showExportOptions && (
             <div className="flex gap-2">
-              <button type="button" className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+              <button
+                type="button"
+                className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
                 Export PDF
               </button>
-              <button type="button" className="px-4 py-2 text-sm border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+              <button
+                type="button"
+                className="px-4 py-2 text-sm border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
                 Copy Data
               </button>
             </div>
           )}
         </div>
       </CardHeader>
-      
+
       <CardContent className="p-6 space-y-8">
         {/* Overall Score Section */}
         <div className="flex justify-center">
           <OverallScoreGauge score={data.overallVisibility} />
         </div>
-        
+
         {/* Model Comparison Section */}
         <div className="space-y-4">
-          <h3 className="text-xl font-semibold text-gray-900">Model Performance Comparison</h3>
+          <h3 className="text-xl font-semibold text-gray-900">
+            Model Performance Comparison
+          </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {data.modelResults.map((result) => (
               <ModelScoreCard
@@ -74,18 +89,20 @@ export function VisibilityMatrix({ data, className, showExportOptions = false, o
                 sentiment={result.sentiment}
                 executionTime={result.execution_time}
                 success={result.success}
-                onClick={onModelClick ? () => onModelClick(result.model) : undefined}
+                onClick={
+                  onModelClick ? () => onModelClick(result.model) : undefined
+                }
               />
             ))}
           </div>
         </div>
-        
+
         {/* Insights and Recommendations Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <InsightsSection insights={data.insights} />
           <RecommendationsList recommendations={data.recommendations} />
         </div>
-        
+
         {/* Metadata Footer */}
         <div className="border-t pt-4">
           <div className="flex flex-wrap justify-between text-xs text-gray-500">

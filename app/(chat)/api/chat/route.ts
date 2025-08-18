@@ -11,6 +11,8 @@ import { getWeather } from '@/lib/ai/tools/get-weather';
 import { requestSuggestions } from '@/lib/ai/tools/request-suggestions';
 import { updateDocument } from '@/lib/ai/tools/update-document';
 import { visibilityExplorerAgent } from '@/lib/ai/tools/visibility-explorer-agent';
+import { visibilityAcrossModelsTool } from '@/lib/ai/tools/visibility-across-models-tool';
+import { ArtifactProcessor } from '@/lib/artifacts/artifact-processor';
 import { isProductionEnvironment } from '@/lib/constants';
 import {
   createStreamId,
@@ -186,6 +188,9 @@ export async function POST(request: Request) {
         const model = myProvider.languageModel(selectedChatModel);
         console.log('Chat API - model:', model);
 
+        // Initialize artifact processor
+        const artifactProcessor = new ArtifactProcessor();
+
         console.log('Chat API - About to call streamText');
         const result = streamText({
           model: model,
@@ -206,6 +211,7 @@ export async function POST(request: Request) {
                     'brandMonitorAgent',
                     'visibilityExplorerAgent',
                     'actionImplementationAgent',
+                    'visibilityAcrossModels',
                   ],
           experimental_transform: smoothStream({ chunking: 'word' }),
           // Only provide tools for non-Mastra models
@@ -223,10 +229,24 @@ export async function POST(request: Request) {
                   brandMonitorAgent,
                   visibilityExplorerAgent,
                   actionImplementationAgent,
+                  visibilityAcrossModels: visibilityAcrossModelsTool,
                 },
           experimental_telemetry: {
             isEnabled: isProductionEnvironment,
             functionId: 'stream-text',
+          },
+          onToolCall: async ({ toolCall }) => {
+            console.log(`Executing tool: ${toolCall.toolName}`, toolCall.args);
+          },
+          onToolResult: async ({ toolCall, result }) => {
+            // Process tool result into artifact
+            if (toolCall.toolName === 'visibilityAcrossModels') {
+              await artifactProcessor.processToolResult(toolCall.toolName, result, {
+                userId: session.user.id,
+                conversationId: id,
+                timestamp: new Date().toISOString(),
+              });
+            }
           },
         });
 
