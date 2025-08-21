@@ -5,14 +5,20 @@ import type { ChatModel } from '@/lib/ai/models';
 import { systemPrompt, type RequestHints } from '@/lib/ai/prompts';
 import { myProvider } from '@/lib/ai/providers';
 import { actionImplementationAgent } from '@/lib/ai/tools/action-implementation-agent';
+import { brandDetectionTool } from '@/lib/ai/tools/brand-detection-tool';
+import { brandMonitorAgent } from '@/lib/ai/tools/brand-monitor-agent';
 import { brandMonitorTool } from '@/lib/ai/tools/brand-monitor-tool';
 import { competitiveIntelligenceTool } from '@/lib/ai/tools/competitive-intelligence-tool';
+import { competitorIdentificationTool } from '@/lib/ai/tools/competitor-identification-tool';
 import { contentOptimizationTool } from '@/lib/ai/tools/content-optimization-tool';
 import { createDocument } from '@/lib/ai/tools/create-document';
 import { getWeather } from '@/lib/ai/tools/get-weather';
+import { multiProviderAnalysisTool } from '@/lib/ai/tools/multi-provider-analysis-tool';
 import { requestSuggestions } from '@/lib/ai/tools/request-suggestions';
 import { updateDocument } from '@/lib/ai/tools/update-document';
 import { visibilityAcrossModelsTool } from '@/lib/ai/tools/visibility-across-models-tool';
+import { websiteMonitorAgent } from '@/lib/ai/tools/website-monitor-agent';
+import { websiteScrapingTool } from '@/lib/ai/tools/website-scraping-tool';
 import { ArtifactProcessor } from '@/lib/artifacts/artifact-processor';
 import { isProductionEnvironment } from '@/lib/constants';
 import {
@@ -188,6 +194,12 @@ export async function POST(request: Request) {
                     'updateDocument',
                     'requestSuggestions',
                     'brandMonitor',
+                    'brandMonitorAgent',
+                    'brandDetection',
+                    'competitorIdentification',
+                    'multiProviderAnalysis',
+                    'websiteMonitorAgent',
+                    'websiteScraping',
                     'competitiveIntelligence',
                     'contentOptimization',
                     'actionImplementationAgent',
@@ -206,6 +218,12 @@ export async function POST(request: Request) {
                     dataStream,
                   }),
                   brandMonitor: brandMonitorTool,
+                  brandMonitorAgent,
+                  brandDetection: brandDetectionTool,
+                  competitorIdentification: competitorIdentificationTool,
+                  multiProviderAnalysis: multiProviderAnalysisTool,
+                  websiteMonitorAgent,
+                  websiteScraping: websiteScrapingTool,
                   competitiveIntelligence: competitiveIntelligenceTool,
                   contentOptimization: contentOptimizationTool,
                   actionImplementationAgent,
@@ -220,6 +238,12 @@ export async function POST(request: Request) {
             if (
               toolCall.toolName === 'visibilityAcrossModels' ||
               toolCall.toolName === 'brandMonitor' ||
+              toolCall.toolName === 'brandMonitorAgent' ||
+              toolCall.toolName === 'brandDetection' ||
+              toolCall.toolName === 'competitorIdentification' ||
+              toolCall.toolName === 'multiProviderAnalysis' ||
+              toolCall.toolName === 'websiteMonitorAgent' ||
+              toolCall.toolName === 'websiteScraping' ||
               toolCall.toolName === 'competitiveIntelligence' ||
               toolCall.toolName === 'contentOptimization'
             ) {
